@@ -17,6 +17,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -82,14 +83,14 @@ class MainActivity : ComponentActivity() {
                     mainViewModel.updateSongs(songs)
                 }
 
-                initMusicPlayer()
-
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     LazyColumn(state = rememberLazyListState(), contentPadding = innerPadding) {
                         items(mainViewModel.songs) { song ->
                             Column {
                               //  Text(song.data)
-                                Text(song.title)
+                                Text(modifier = Modifier.clickable {
+                                    playSelectedSong(song.uri)
+                                }, text = song.title)
                                 Text(song.artist)
                             }
 
@@ -122,13 +123,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun initMusicPlayer() {
+    private fun playSelectedSong(uri: Uri) {
+        releaseMediaPlayer()
         mAudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
 
-
-        /* Request audio focus so in order to play the audio file. The app needs to play a
-    audio file, so we will request audio focus for unknown duration
-   with AUDIOFOCUS_GAIN*/
         var result:Int? = 0
         result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             //for API >= 26
@@ -144,7 +142,7 @@ class MainActivity : ComponentActivity() {
 
         if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             //create player
-            mMediaPlayer = MediaPlayer.create(this, mainViewModel.songs[0].uri)
+            mMediaPlayer = MediaPlayer.create(this, uri)
             //start playing
             Log.d("OnCreate method", "OnCreate player created")
             mMediaPlayer!!.start()
