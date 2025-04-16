@@ -1,8 +1,10 @@
 package com.example.contentproviderformusic
 
 import android.Manifest
-import android.R
 import android.content.ContentUris
+import android.content.Intent
+import android.database.Cursor
+import android.graphics.BitmapFactory
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
@@ -32,7 +34,10 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
+import coil.compose.AsyncImage
 import com.example.contentproviderformusic.ui.theme.ContentProviderForMusicTheme
 
 
@@ -68,10 +73,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ContentProviderForMusicTheme {
-               requestPermissions(arrayOf(Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE), 0)
-                val projection = arrayOf(MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.ALBUM)
+               requestPermissions(arrayOf(Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK, Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_MEDIA_IMAGES,Manifest.permission.READ_EXTERNAL_STORAGE), 0)
+                val projection = arrayOf(MediaStore.Audio.Media.ALBUM_ID,MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.ALBUM)
+
                 contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, MediaStore.Audio.Media.IS_MUSIC + " != 0",null,null)?.use { cursor ->
                     val idColumn = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
+                    val idAlbumColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
                     val dataColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
                     val titleColumn = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
                     val artistColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
@@ -79,14 +86,23 @@ class MainActivity : ComponentActivity() {
                     val songs = mutableListOf<Song>()
                     while (cursor.moveToNext()) {
                         val id = cursor.getLong(idColumn)
+                        val albumId = cursor.getInt(idAlbumColumn)
                         val data = cursor.getString(dataColumn)
                         val title = cursor.getString(titleColumn)
                         val artist = cursor.getString(artistColumn)
                         val album = cursor.getString(albumColumn)
                         val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                        val albumUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, albumId.toLong())
 
-                        songs.add(Song(data, title, artist, album, uri))
-                        Log.d("debug_title",title)
+
+
+                        songs.add(Song(albumUri, data, title, artist, album, uri))
+                        Log.d("debug_album", albumUri.toString())
+                        Log.d("debug_album0", albumUri.scheme.toString())
+                        Log.d("debug_album1", albumUri.path.toString())
+                        Log.d("debug_album2", albumUri.pathSegments.toString())
+                      //  Log.d("debug_data",data ?: "")
+                      //  Log.d("debug_artist",artist ?: "")
                     }
 
                     mainViewModel.updateSongs(songs)
@@ -95,11 +111,20 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     LazyColumn(state = rememberLazyListState(), contentPadding = innerPadding) {
                         items(mainViewModel.songs) { song ->
-                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().height(60.dp).background(Color.Blue.copy(alpha = 0.3f)).padding(vertical = 4.dp)) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .background(Color.Blue.copy(alpha = 0.3f))
+                                .padding(vertical = 4.dp)) {
                                 Text(modifier = Modifier.clickable {
-                                    playSelectedSong(song.uri)
-                                }, text = song.album)
-                                
+                                    Intent(applicationContext, MainService::class.java).also {
+                                        it.action = MainService.Actions.START.toString()
+                                        it.putExtra("SONG_ID", song.uri.toString())
+                                        startService(it)
+                                    }
+                                  //  playSelectedSong(song.uri)
+                                }, text = song.albumImage.toString())
+                            //    AsyncImage(model =song.albumImage?.path+".png", contentDescription = null)
                             }
 
                         }
@@ -117,14 +142,7 @@ class MainActivity : ComponentActivity() {
 
     private fun releaseMediaPlayer() {
         if (mMediaPlayer != null) {
-            // Regardless of the current state of the media player, release its resources
-            // because we no longer need it.
-            mMediaPlayer?.also {
-                it.release();
-            }
-            // Set the media player back to null. For our code, we've decided that
-            // setting the media player to null is an easy way to tell that the media player
-            // is not configured to play an audio file at the moment.
+            mMediaPlayer?.also { it.release(); }
             mMediaPlayer = null;
             mAudioManager?.abandonAudioFocus(mOnAudioFocusChangeListener);
 
@@ -167,4 +185,4 @@ class MainActivity : ComponentActivity() {
 }
 
 
-data class Song(val data:String, val title:String, val artist:String, val album:String, val uri: Uri)
+data class Song(val albumImage:Uri?, val data:String, val title:String, val artist:String, val album:String, val uri: Uri)
