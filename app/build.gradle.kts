@@ -58,4 +58,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.coil)
     implementation(libs.coil.kt.compose)
+    implementation(libs.coil.video)
+    implementation(libs.coil.base)
+    implementation(libs.coil.compose.base)
+    implementation(libs.coil.kt.svg)
 }
