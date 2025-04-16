@@ -17,15 +17,22 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.example.contentproviderformusic.ui.theme.ContentProviderForMusicTheme
 
 
@@ -62,21 +69,23 @@ class MainActivity : ComponentActivity() {
         setContent {
             ContentProviderForMusicTheme {
                requestPermissions(arrayOf(Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE), 0)
-                val projection = arrayOf(MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST)
+                val projection = arrayOf(MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.ALBUM)
                 contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, MediaStore.Audio.Media.IS_MUSIC + " != 0",null,null)?.use { cursor ->
                     val idColumn = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
                     val dataColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
                     val titleColumn = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
                     val artistColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
+                    val albumColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)
                     val songs = mutableListOf<Song>()
                     while (cursor.moveToNext()) {
                         val id = cursor.getLong(idColumn)
                         val data = cursor.getString(dataColumn)
                         val title = cursor.getString(titleColumn)
                         val artist = cursor.getString(artistColumn)
+                        val album = cursor.getString(albumColumn)
                         val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
 
-                        songs.add(Song(data, title, artist, uri))
+                        songs.add(Song(data, title, artist, album, uri))
                         Log.d("debug_title",title)
                     }
 
@@ -86,12 +95,11 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     LazyColumn(state = rememberLazyListState(), contentPadding = innerPadding) {
                         items(mainViewModel.songs) { song ->
-                            Column {
-                              //  Text(song.data)
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().height(60.dp).background(Color.Blue.copy(alpha = 0.3f)).padding(vertical = 4.dp)) {
                                 Text(modifier = Modifier.clickable {
                                     playSelectedSong(song.uri)
-                                }, text = song.title)
-                                Text(song.artist)
+                                }, text = song.album)
+                                
                             }
 
                         }
@@ -159,4 +167,4 @@ class MainActivity : ComponentActivity() {
 }
 
 
-data class Song(val data:String, val title:String, val artist:String, val uri: Uri)
+data class Song(val data:String, val title:String, val artist:String, val album:String, val uri: Uri)
