@@ -8,9 +8,11 @@ import kotlinx.coroutines.flow.update
 
 class MainViewModel:ViewModel() {
 
-    private val _songs = mutableStateListOf<Song>()
-    val songs:List<Song> = _songs
+    companion object {
+        private val _songs = mutableStateListOf<Song>()
+        val songs:List<Song> = _songs
 
+    }
 
     private val _permissionsGranted = MutableStateFlow(false)
     val permissionGranted = _permissionsGranted.asStateFlow()

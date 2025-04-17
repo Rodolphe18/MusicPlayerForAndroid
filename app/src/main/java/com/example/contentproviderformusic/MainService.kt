@@ -24,6 +24,8 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener {
 
     private var myBinder = MyBinder()
 
+    val songs = MainViewModel.songs
+
     /** Handles audio focus when playing a sound file  */
     var mAudioManager: AudioManager? = null
 

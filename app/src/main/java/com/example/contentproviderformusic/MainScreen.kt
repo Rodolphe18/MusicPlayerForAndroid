@@ -1,7 +1,8 @@
 package com.example.contentproviderformusic
 
-import android.content.Intent
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,28 +13,28 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.ImageLoader
 import coil.compose.AsyncImage
-import coil.compose.rememberImagePainter
-import coil.decode.SvgDecoder
-import coil.decode.VideoFrameDecoder
+import coil.compose.rememberAsyncImagePainter
 import java.util.concurrent.TimeUnit
 
 @Composable
-fun MainScreen(songs:List<Song>) {
+fun MainScreen(songs:List<Song>, onClick:(Song)->Unit) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         LazyColumn(state = rememberLazyListState(), contentPadding = innerPadding) {
             items(songs) { song ->
-                Column {
-                    Row(modifier = Modifier.clickable {
+                    Row(modifier = Modifier.padding(horizontal = 8.dp).clickable {
+                        onClick(song)
 //                        Intent(
 //                            applicationContext,
 //                            MainService::class.java
@@ -43,36 +44,30 @@ fun MainScreen(songs:List<Song>) {
 //                            startService(it)
 //                        }
                     }, verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .weight(0.25f)
-                                .padding(
-                                    start = 14.dp,
-                                    end = 6.dp,
-                                    top = 4.dp,
-                                    bottom = 4.dp
-                                )
-                        ) {
+                        Box(modifier = Modifier.clip(RoundedCornerShape(8.dp))) {
+                            val context = LocalContext.current
+                            val imgArt = getImgArt(song.data)
+                            val image = if (imgArt != null) {
+                                BitmapFactory.decodeByteArray(imgArt, 0, imgArt.size)
+                            } else {
+                                BitmapFactory.decodeResource(context.resources, R.drawable.music_player_icon_slash_screen)
+                            }
                             AsyncImage(
-                                error = rememberImagePainter(R.drawable.music_player_icon_slash_screen),
-                                placeholder = rememberImagePainter(R.drawable.music_player_icon_slash_screen),
+                                error = rememberAsyncImagePainter(R.drawable.music_player_icon_slash_screen),
+                                placeholder = rememberAsyncImagePainter(R.drawable.music_player_icon_slash_screen),
                                 modifier = Modifier.size(50.dp),
-                                model = song.albumImage,
+                                model = image,
                                 contentDescription = null,
-                                imageLoader =
-                                ImageLoader.Builder(LocalContext.current)
-                                    .components {
-                                        add(VideoFrameDecoder.Factory())
-                                        add(SvgDecoder.Factory())
-                                    }.build()
+                                contentScale = ContentScale.FillHeight
                             )
                         }
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
                             modifier = Modifier
                                 .weight(1f)
                                 .height(70.dp)
-                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                                .padding(start = 14.dp, end = 8.dp, bottom = 2.dp, top = 2.dp)
                         ) {
                             Text(
                                 text = song.title,
@@ -87,7 +82,6 @@ fun MainScreen(songs:List<Song>) {
                     }
                 }
             }
-        }
     }
 }
 

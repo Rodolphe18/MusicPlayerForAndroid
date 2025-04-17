@@ -3,8 +3,10 @@ package com.example.contentproviderformusic
 import android.Manifest
 import android.content.ComponentName
 import android.content.ContentUris
+import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
@@ -51,8 +53,10 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                 val permissionGranted by mainViewModel.permissionGranted.collectAsState(false)
                 requestRuntimePermission()
                 getUserSongs()
-                if (permissionGranted) {
-                    MainScreen(mainViewModel.songs)
+                if (permissionGranted || requestRuntimePermission()) {
+                    MainScreen(MainViewModel.songs) { song ->
+                        initServiceAndPlaylist()
+                    }
                 }
             }
         }
@@ -200,6 +204,12 @@ class MainActivity : ComponentActivity(), ServiceConnection {
             //listen for completition of playing
             mMediaPlayer!!.setOnCompletionListener(mCompletitionListener)
         }
+    }
+
+    private fun initServiceAndPlaylist() {
+        val intent = Intent(this, MainService::class.java)
+        bindService(intent, this, BIND_AUTO_CREATE)
+        startService(intent)
     }
 
     private val mCompletitionListener = OnCompletionListener { releaseMediaPlayer() }
