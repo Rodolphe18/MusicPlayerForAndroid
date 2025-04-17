@@ -1,10 +1,10 @@
 package com.example.contentproviderformusic
 
 import android.Manifest
+import android.content.ComponentName
 import android.content.ContentUris
 import android.content.Intent
-import android.database.Cursor
-import android.graphics.BitmapFactory
+import android.content.ServiceConnection
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
@@ -12,6 +12,7 @@ import android.media.MediaPlayer.OnCompletionListener
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -19,48 +20,36 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import coil.ImageLoader
 import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import coil.decode.SvgDecoder
 import coil.decode.VideoFrameDecoder
-import coil.request.CachePolicy
-import coil.request.ImageRequest
-import coil.size.Size
 import com.example.contentproviderformusic.ui.theme.ContentProviderForMusicTheme
 import java.util.concurrent.TimeUnit
 
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), ServiceConnection {
+
+    var musicService: MainService? = null
 
     private val mainViewModel by viewModels<MainViewModel>()
 
@@ -70,10 +59,10 @@ class MainActivity : ComponentActivity() {
     /** Handles audio focus when playing a sound file  */
     private var mAudioManager: AudioManager? = null
 
-    private var length:Int? = null
+    private var length: Int? = null
 
     private val mOnAudioFocusChangeListener = AudioManager.OnAudioFocusChangeListener {
-       fun onAudioFocusChange(focusChange:Int) {
+        fun onAudioFocusChange(focusChange: Int) {
             if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
                 mMediaPlayer?.pause();
             } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
@@ -92,10 +81,32 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ContentProviderForMusicTheme {
-               requestPermissions(arrayOf(Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK, Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.READ_MEDIA_AUDIO, Manifest.permission.READ_MEDIA_IMAGES,Manifest.permission.READ_EXTERNAL_STORAGE), 0)
-                val projection = arrayOf(MediaStore.Audio.Media.ALBUM_ID,MediaStore.Audio.Media._ID,MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.DURATION,)
+                requestPermissions(
+                    arrayOf(
+                        Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK,
+                        Manifest.permission.POST_NOTIFICATIONS,
+                        Manifest.permission.READ_MEDIA_AUDIO,
+                        Manifest.permission.READ_MEDIA_IMAGES,
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    ), 0
+                )
+                val projection = arrayOf(
+                    MediaStore.Audio.Media.ALBUM_ID,
+                    MediaStore.Audio.Media._ID,
+                    MediaStore.Audio.Media.DATA,
+                    MediaStore.Audio.Media.TITLE,
+                    MediaStore.Audio.Media.ARTIST,
+                    MediaStore.Audio.Media.ALBUM,
+                    MediaStore.Audio.Media.DURATION,
+                )
 
-                contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, projection, MediaStore.Audio.Media.IS_MUSIC + " != 0",null,null)?.use { cursor ->
+                contentResolver.query(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    projection,
+                    MediaStore.Audio.Media.IS_MUSIC + " != 0",
+                    null,
+                    null
+                )?.use { cursor ->
                     val idColumn = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
                     val idAlbumColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
                     val dataColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
@@ -112,7 +123,10 @@ class MainActivity : ComponentActivity() {
                         val artist = cursor.getString(artistColumn)
                         val album = cursor.getString(albumColumn)
                         val duration = cursor.getLong(durationColumn)
-                        val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                        val uri = ContentUris.withAppendedId(
+                            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                            id
+                        )
                         val artUri = Uri.parse("content://media/external/audio/albumart")
                         val albumUri = Uri.withAppendedPath(artUri, albumId)
                         //   Log.d("debug_album", albumUri)
@@ -127,33 +141,50 @@ class MainActivity : ComponentActivity() {
                     LazyColumn(state = rememberLazyListState(), contentPadding = innerPadding) {
                         items(mainViewModel.songs) { song ->
                             Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(modifier = Modifier.weight(0.25f).padding(start = 14.dp, end = 6.dp, top = 4.dp, bottom = 4.dp)) {
-                                        AsyncImage(error = rememberImagePainter(R.drawable.music_player_icon_slash_screen), placeholder = rememberImagePainter(R.drawable.music_player_icon_slash_screen), modifier = Modifier.size(50.dp), model = song.albumImage, contentDescription = null, imageLoader =
-                                        ImageLoader.Builder(LocalContext.current).components {
-                                            add(VideoFrameDecoder.Factory())
-                                            add(SvgDecoder.Factory())
-                                        }.build())
+                                Row(modifier = Modifier.clickable {
+                                    Intent(
+                                        applicationContext,
+                                        MainService::class.java
+                                    ).also {
+                                        it.action = MainService.Actions.START.toString()
+                                        it.putExtra("SONG_ID", song.uri.toString())
+                                        startService(it)
+                                    }
+                                }, verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(0.25f)
+                                            .padding(
+                                                start = 14.dp,
+                                                end = 6.dp,
+                                                top = 4.dp,
+                                                bottom = 4.dp
+                                            )
+                                    ) {
+                                        AsyncImage(error = rememberImagePainter(R.drawable.music_player_icon_slash_screen),
+                                            placeholder = rememberImagePainter(R.drawable.music_player_icon_slash_screen),
+                                            modifier = Modifier.size(50.dp),
+                                            model = song.albumImage,
+                                            contentDescription = null,
+                                            imageLoader =
+                                            ImageLoader.Builder(LocalContext.current).components {
+                                                add(VideoFrameDecoder.Factory())
+                                                add(SvgDecoder.Factory())
+                                            }.build()
+                                        )
                                     }
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         modifier = Modifier
                                             .weight(1f)
                                             .height(70.dp)
-                                            .padding(horizontal = 12.dp, vertical = 2.dp)
+                                            .padding(horizontal = 8.dp, vertical = 2.dp)
                                     ) {
-                                        Text(modifier = Modifier.clickable {
-                                            Intent(
-                                                applicationContext,
-                                                MainService::class.java
-                                            ).also {
-                                                it.action = MainService.Actions.START.toString()
-                                                it.putExtra("SONG_ID", song.uri.toString())
-                                                startService(it)
-                                            }
-                                        }, text = song.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                        //   AsyncImage(modifier = Modifier.fillMaxWidth().height(50.dp),
-                                        //      model = song.albumImage , contentDescription =  null)
+                                        Text(
+                                            text = song.title,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
                                     }
                                     Text(
                                         text = formatDuration(song.duration),
@@ -166,6 +197,23 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+        if(musicService == null){
+            val binder = service as MainService.MyBinder
+            musicService = binder.currentService()
+            musicService!!.mAudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
+            musicService!!.mAudioManager?.requestAudioFocus(musicService, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
+        }
+      //  createMediaPlayer()
+      //  musicService!!.seekBarSetup()
+
+
+    }
+
+    override fun onServiceDisconnected(name: ComponentName?) {
+        musicService = null
     }
 
     override fun onStop() {
@@ -187,11 +235,11 @@ class MainActivity : ComponentActivity() {
         releaseMediaPlayer()
         mAudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
 
-        var result:Int? = 0
+        var result: Int? = 0
         result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             //for API >= 26
             mAudioManager?.requestAudioFocus((AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)).build())
-             } else {
+        } else {
             mAudioManager?.requestAudioFocus(
                 mOnAudioFocusChangeListener,
                 AudioManager.STREAM_MUSIC,
@@ -214,12 +262,18 @@ class MainActivity : ComponentActivity() {
     private val mCompletitionListener = OnCompletionListener { releaseMediaPlayer() }
 
 
-
-
 }
 
 
-data class Song(val albumImage:Uri, val data:String, val title:String, val artist:String, val album:String, val uri: Uri, val duration:Long=0)
+data class Song(
+    val albumImage: Uri,
+    val data: String,
+    val title: String,
+    val artist: String,
+    val album: String,
+    val uri: Uri,
+    val duration: Long = 0
+)
 
 fun formatDuration(duration: Long): String {
     val minutes = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
