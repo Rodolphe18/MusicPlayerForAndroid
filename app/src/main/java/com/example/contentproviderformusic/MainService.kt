@@ -8,6 +8,7 @@ import android.media.AudioManager
 import android.media.Image
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -17,12 +18,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.core.app.NotificationCompat
 
-class MainService : Service() {
+class MainService : Service(), AudioManager.OnAudioFocusChangeListener {
 
     private var mMediaPlayer: MediaPlayer? = null
 
+    private var myBinder = MyBinder()
+
     /** Handles audio focus when playing a sound file  */
-    private var mAudioManager: AudioManager? = null
+    var mAudioManager: AudioManager? = null
 
     private var length:Int? = null
 
@@ -31,34 +34,22 @@ class MainService : Service() {
 
     private val mOnAudioFocusChangeListener = AudioManager.OnAudioFocusChangeListener {
         fun onAudioFocusChange(focusChange:Int) {
-            if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
-                mMediaPlayer?.pause();
-            } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-                mMediaPlayer?.start();
-            } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-                length = mMediaPlayer?.currentPosition;
-                Log.d("loss focus", "loss of focus");
-                releaseMediaPlayer();
-            }
+
         }
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        TODO()
+    override fun onBind(intent: Intent?): IBinder {
+        return myBinder
+    }
+
+    inner class MyBinder : Binder() {
+        fun currentService(): MainService {
+            return this@MainService
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
-            Actions.START.toString() -> {
-                start()
-                intent.getStringExtra("SONG_ID")?.let {
-                    playSelectedSong(Uri.parse(it))
-                }
-            }
-            Actions.PAUSE.toString() -> stopSelf()
-            Actions.STOP.toString() -> stopSelf()
-        }
-        return super.onStartCommand(intent, flags, startId)
+        return START_STICKY
     }
 
     private fun start() {
@@ -112,6 +103,18 @@ class MainService : Service() {
 
     enum class Actions {
         START, PAUSE, STOP
+    }
+
+    override fun onAudioFocusChange(focusChange: Int) {
+        if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+            mMediaPlayer?.pause();
+        } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
+            mMediaPlayer?.start();
+        } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+            length = mMediaPlayer?.currentPosition;
+            Log.d("loss focus", "loss of focus");
+            releaseMediaPlayer();
+        }
     }
 
 
