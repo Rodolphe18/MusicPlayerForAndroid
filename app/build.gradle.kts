@@ -62,4 +62,5 @@ dependencies {
     implementation(libs.coil.base)
     implementation(libs.coil.compose.base)
     implementation(libs.coil.kt.svg)
+    implementation(libs.androidx.media)
 }
