@@ -6,7 +6,6 @@ import android.content.ContentUris
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
@@ -16,7 +15,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -29,20 +27,15 @@ import androidx.core.app.ActivityCompat
 import com.example.contentproviderformusic.ui.theme.ContentProviderForMusicTheme
 
 
-class MainActivity : ComponentActivity(), ServiceConnection {
+class MainActivity : ComponentActivity(), ServiceConnection, OnCompletionListener {
 
-    var musicService: MainService? = null
+    private var musicService: MainService? = null
 
     private val mainViewModel by viewModels<MainViewModel>()
 
-    /** Handles playback of all the sound files  */
-    private var mMediaPlayer: MediaPlayer? = null
+    private var currentSong:Song? = null
 
-    /** Handles audio focus when playing a sound file  */
-    private var mAudioManager: AudioManager? = null
-
-    private var length: Int? = null
-
+    private var indexSong:Int? = null
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,23 +46,59 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                 val permissionGranted by mainViewModel.permissionGranted.collectAsState(false)
                 requestRuntimePermission()
                 getUserSongs()
+                initServiceAndPlaylist()
                 if (permissionGranted || requestRuntimePermission()) {
-                    MainScreen(MainViewModel.songs) { song ->
-                        initServiceAndPlaylist()
+                    MainScreen(MainViewModel.songs) { index, song ->
+                        playSelectedSong(song.uri)
+                        currentSong = song
+                        indexSong = index
                     }
                 }
             }
         }
     }
 
-    private fun requestRuntimePermission() :Boolean{
+    private fun initServiceAndPlaylist() {
+        val intent = Intent(this, MainService::class.java)
+        bindService(intent, this, BIND_AUTO_CREATE)
+        startService(intent)
+    }
+
+    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+        if (musicService == null) {
+            val binder = service as MainService.MyBinder
+            musicService = binder.currentService()
+            musicService?.mAudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
+            musicService?.mAudioManager?.requestAudioFocus(
+                musicService,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN
+            )
+        }
+        //  musicService!!.seekBarSetup()
+
+
+    }
+
+    override fun onServiceDisconnected(name: ComponentName?) {
+        musicService = null
+    }
+
+    override fun onPause() {
+        super.onPause()
+        currentSong?.let {
+            musicService?.startCustomForegroundService(it)
+        }
+    }
+
+    private fun requestRuntimePermission(): Boolean {
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU){
             if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE,)
                 != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 13)
                 return false
             }
-        }else{
+        } else {
             //android 13 or Higher permission request
             if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -97,7 +126,6 @@ class MainActivity : ComponentActivity(), ServiceConnection {
 
     private fun getUserSongs() {
         val projection = arrayOf(
-            MediaStore.Audio.Media.ALBUM_ID,
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.DATA,
             MediaStore.Audio.Media.TITLE,
@@ -114,7 +142,6 @@ class MainActivity : ComponentActivity(), ServiceConnection {
             null
         )?.use { cursor ->
             val idColumn = cursor.getColumnIndex(MediaStore.Audio.Media._ID)
-            val idAlbumColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
             val dataColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA)
             val titleColumn = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)
             val artistColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)
@@ -123,7 +150,6 @@ class MainActivity : ComponentActivity(), ServiceConnection {
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idColumn)
-                val albumId = cursor.getLong(idAlbumColumn).toString()
                 val data = cursor.getString(dataColumn)
                 val title = cursor.getString(titleColumn)
                 val artist = cursor.getString(artistColumn)
@@ -133,86 +159,47 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                     MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                     id
                 )
-                val artUri = Uri.parse("content://media/external/audio/albumart")
-                val albumUri = Uri.withAppendedPath(artUri, albumId)
-                //   Log.d("debug_album", albumUri)
                 if (duration > 0) {
-                    mainViewModel.addSong(Song(albumUri, data, title, artist, album, uri, duration))
+                    mainViewModel.addSong(Song(data, title, artist, album, uri, duration))
                 }
             }
         }
     }
 
-
-    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-        if (musicService == null) {
-            val binder = service as MainService.MyBinder
-            musicService = binder.currentService()
-            musicService!!.mAudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
-            musicService!!.mAudioManager?.requestAudioFocus(
-                musicService,
-                AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN
-            )
-        }
-        //  createMediaPlayer()
-        //  musicService!!.seekBarSetup()
-
-
-    }
-
-    override fun onServiceDisconnected(name: ComponentName?) {
-        musicService = null
-    }
-
-    override fun onStop() {
-        super.onStop()
-        releaseMediaPlayer()
-    }
-
-
-    private fun releaseMediaPlayer() {
-        if (mMediaPlayer != null) {
-            mMediaPlayer?.also { it.release(); }
-            mMediaPlayer = null;
-        }
-    }
-
     private fun playSelectedSong(uri: Uri) {
-        releaseMediaPlayer()
-        mAudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
-
+        musicService?.releaseMediaPlayer()
+        musicService?.mAudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
         var result: Int? = 0
         result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            //for API >= 26
-            mAudioManager?.requestAudioFocus((AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)).build())
+            musicService?.mAudioManager?.requestAudioFocus((AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)).build())
         } else {
-            mAudioManager?.requestAudioFocus(
+            musicService?.mAudioManager?.requestAudioFocus(
                 musicService,
                 AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN
             )
         }
-
-
         if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            //create player
-            mMediaPlayer = MediaPlayer.create(this, uri)
-            //start playing
-            Log.d("OnCreate method", "OnCreate player created")
-            mMediaPlayer!!.start()
-            //listen for completition of playing
-            mMediaPlayer!!.setOnCompletionListener(mCompletitionListener)
+            musicService?.mMediaPlayer = MediaPlayer.create(this, uri)
+            musicService?.mMediaPlayer?.reset()
+            musicService?.mMediaPlayer?.prepare()
+            musicService?.mMediaPlayer?.start()
+            musicService?.mMediaPlayer?.setOnCompletionListener(this)
         }
     }
 
-    private fun initServiceAndPlaylist() {
-        val intent = Intent(this, MainService::class.java)
-        bindService(intent, this, BIND_AUTO_CREATE)
-        startService(intent)
+
+    override fun onCompletion(mp: MediaPlayer?) {
+        musicService?.releaseMediaPlayer()
+        currentSong = null
+        indexSong?.let { index ->
+            if (index < MainViewModel.songs.size-1) {
+                playSelectedSong(MainViewModel.songs[index +1].uri)
+            }
+        }
     }
 
-    private val mCompletitionListener = OnCompletionListener { releaseMediaPlayer() }
+
 
 
 }
