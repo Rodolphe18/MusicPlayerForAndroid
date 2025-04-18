@@ -3,7 +3,6 @@ package com.example.contentproviderformusic
 import android.net.Uri
 
 data class Song(
-    val albumImage: Uri,
     val data: String,
     val title: String,
     val artist: String,
