@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
@@ -25,24 +26,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
-import java.util.concurrent.TimeUnit
 
 @Composable
-fun MainScreen(songs:List<Song>, onClick:(Song)->Unit) {
+fun MainScreen(songs:List<Song>, onClick:(Int, Song)->Unit) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         LazyColumn(state = rememberLazyListState(), contentPadding = innerPadding) {
-            items(songs) { song ->
+            itemsIndexed(songs) { index, song ->
                     Row(modifier = Modifier.padding(horizontal = 8.dp).clickable {
-                        onClick(song)
-//                        Intent(
-//                            applicationContext,
-//                            MainService::class.java
-//                        ).also {
-//                            it.action = MainService.Actions.START.toString()
-//                            it.putExtra("SONG_ID", song.uri.toString())
-//                            startService(it)
-//                        }
+                        onClick(index, song)
                     }, verticalAlignment = Alignment.CenterVertically) {
                         Box(modifier = Modifier.clip(RoundedCornerShape(8.dp))) {
                             val context = LocalContext.current
@@ -53,8 +44,6 @@ fun MainScreen(songs:List<Song>, onClick:(Song)->Unit) {
                                 BitmapFactory.decodeResource(context.resources, R.drawable.music_player_icon_slash_screen)
                             }
                             AsyncImage(
-                                error = rememberAsyncImagePainter(R.drawable.music_player_icon_slash_screen),
-                                placeholder = rememberAsyncImagePainter(R.drawable.music_player_icon_slash_screen),
                                 modifier = Modifier.size(50.dp),
                                 model = image,
                                 contentDescription = null,
@@ -85,9 +74,4 @@ fun MainScreen(songs:List<Song>, onClick:(Song)->Unit) {
     }
 }
 
-fun formatDuration(duration: Long): String {
-    val minutes = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
-    val seconds = (TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) -
-            minutes * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES))
-    return String.format("%02d:%02d", minutes, seconds)
-}
+
