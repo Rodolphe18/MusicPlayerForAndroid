@@ -151,7 +151,6 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
         val exitIntent = Intent(this, MainService::class.java).setAction(EXIT)
         val exitPendingIntent = PendingIntent.getService(this, 0, exitIntent, flag)
 
-
         val imgArt = getImgArt(song.data)
         val image:Bitmap? = if (imgArt != null) {
             BitmapFactory.decodeByteArray(imgArt, 0, imgArt.size)
@@ -176,7 +175,6 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-
             mMediaPlayer?.duration?.let {
                 mediaSession.setMetadata(
                     MediaMetadataCompat.Builder().putLong(
@@ -184,38 +182,12 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
                     ).build()
                 )
             }
-
             mediaSession.setPlaybackState(getPlayBackState())
             mediaSession.setCallback(object : MediaSessionCompat.Callback() {
-
-                //called when play button is pressed
-                override fun onPlay() {
-                    super.onPlay()
-                    handlePlayPause()
-                }
-
-                //called when pause button is pressed
-                override fun onPause() {
-                    super.onPause()
-                    handlePlayPause()
-                }
-
-                //called when next button is pressed
-                override fun onSkipToNext() {
-                    super.onSkipToNext()
-                    prevNextSong(increment = true, context = baseContext)
-                }
-
-                //called when previous button is pressed
-                override fun onSkipToPrevious() {
-                    super.onSkipToPrevious()
-                    prevNextSong(increment = false, context = baseContext)
-                }
 
                 //called when headphones buttons are pressed
                 //currently only pause or play music on button click
                 override fun onMediaButtonEvent(mediaButtonEvent: Intent?): Boolean {
-                    handlePlayPause()
                     return super.onMediaButtonEvent(mediaButtonEvent)
                 }
 
@@ -223,45 +195,13 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
                 override fun onSeekTo(pos: Long) {
                     super.onSeekTo(pos)
                     mMediaPlayer?.seekTo(pos.toInt())
-
                     mediaSession.setPlaybackState(getPlayBackState())
                 }
             })
         }
-
-
         startForeground(13, notification)
-
     }
 
-    private fun prevNextSong(increment: Boolean, context: Context){
-
-//        setSongPosition(increment = increment)
-//
-//        PlayerActivity.musicService?.createMediaPlayer()
-//        Glide.with(context)
-//            .load(PlayerActivity.musicListPA[PlayerActivity.songPosition].artUri)
-//            .apply(RequestOptions().placeholder(R.drawable.music_player_icon_slash_screen).centerCrop())
-//            .into(PlayerActivity.binding.songImgPA)
-//
-//        PlayerActivity.binding.songNamePA.text = PlayerActivity.musicListPA[PlayerActivity.songPosition].title
-//
-//        Glide.with(context)
-//            .load(PlayerActivity.musicListPA[PlayerActivity.songPosition].artUri)
-//            .apply(RequestOptions().placeholder(R.drawable.music_player_icon_slash_screen).centerCrop())
-//            .into(NowPlaying.binding.songImgNP)
-//
-//        NowPlaying.binding.songNameNP.text = PlayerActivity.musicListPA[PlayerActivity.songPosition].title
-//
-//        playMusic()
-//
-//        PlayerActivity.fIndex = favouriteChecker(PlayerActivity.musicListPA[PlayerActivity.songPosition].id)
-//        if(PlayerActivity.isFavourite) PlayerActivity.binding.favouriteBtnPA.setImageResource(R.drawable.favourite_icon)
-//        else PlayerActivity.binding.favouriteBtnPA.setImageResource(R.drawable.favourite_empty_icon)
-
-        //update playback state for notification
-        mediaSession.setPlaybackState(getPlayBackState())
-    }
 
     fun getPlayBackState(): PlaybackStateCompat {
         val playbackSpeed = if (mMediaPlayer?.isPlaying == true) 1F else 0F
