@@ -33,7 +33,6 @@
         <service android:name=".MainService"
             android:foregroundServiceType="mediaPlayback"
             />
-        <receiver android:name=".NotificationReceiver"/>
     </application>
 
 </manifest>
