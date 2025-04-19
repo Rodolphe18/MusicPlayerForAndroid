@@ -35,21 +35,7 @@ fun MainScreen(songs:List<Song>, onClick:(Int, Song)->Unit) {
                     Row(modifier = Modifier.padding(horizontal = 8.dp).clickable {
                         onClick(index, song)
                     }, verticalAlignment = Alignment.CenterVertically) {
-                        Box(modifier = Modifier.clip(RoundedCornerShape(8.dp))) {
-                            val context = LocalContext.current
-                            val imgArt = getImgArt(song.data)
-                            val image = if (imgArt != null) {
-                                BitmapFactory.decodeByteArray(imgArt, 0, imgArt.size)
-                            } else {
-                                BitmapFactory.decodeResource(context.resources, R.drawable.music_player_icon_slash_screen)
-                            }
-                            AsyncImage(
-                                modifier = Modifier.size(50.dp),
-                                model = image,
-                                contentDescription = null,
-                                contentScale = ContentScale.FillHeight
-                            )
-                        }
+                        AlbumImage(song.data, 50.dp, 8.dp)
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center,
