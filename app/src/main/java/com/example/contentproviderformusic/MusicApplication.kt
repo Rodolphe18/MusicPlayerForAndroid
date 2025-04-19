@@ -18,12 +18,4 @@ class MusicApplication: Application() {
         }
     }
 
-    companion object{
-        const val CHANNEL_ID = "MusicNotification"
-        const val PLAY = "play"
-        const val NEXT = "next"
-        const val PREVIOUS = "previous"
-        const val EXIT = "exit"
-    }
-
 }
