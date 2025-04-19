@@ -9,8 +9,6 @@ import android.content.pm.PackageManager
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
-import android.media.MediaPlayer.OnCompletionListener
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
@@ -49,7 +47,7 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                         musicService?.playSelectedSong(song.uri)
                         musicService?.currentSong = song
                         musicService?.indexSong?.set(index)
-                        musicService?.startCustomForegroundService(musicService?.currentSong!!,R.drawable.pause_icon)
+                        musicService?.startCustomForegroundService(song, R.drawable.pause_icon)
                     }
                 }
             }
@@ -68,26 +66,24 @@ class MainActivity : ComponentActivity(), ServiceConnection {
             musicService = binder.currentService()
             musicService?.mAudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
             musicService?.mAudioManager?.requestAudioFocus(
-                musicService,
-                AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN
-            )
+                    musicService,
+                    AudioManager.STREAM_MUSIC,
+                    AudioManager.AUDIOFOCUS_GAIN
+                )
         }
         //  musicService!!.seekBarSetup()
-
-
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
         musicService = null
     }
 
-    override fun onPause() {
-        super.onPause()
-        musicService?.currentSong?.let {
-            musicService?.startCustomForegroundService(it)
-        }
-    }
+//    override fun onPause() {
+//        super.onPause()
+//        musicService?.currentSong?.let {
+//            musicService?.startCustomForegroundService(it)
+//        }
+//    }
 
     private fun requestRuntimePermission(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {

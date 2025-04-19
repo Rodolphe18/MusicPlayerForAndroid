@@ -33,11 +33,10 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
 
     var mAudioManager: AudioManager? = null
 
-    private var length:Int? = null
-
     var isPlaying = false
 
     var currentSong: Song? = null
+
     var indexSong: AtomicInteger = AtomicInteger(-1)
 
     override fun onBind(intent: Intent?): IBinder {
@@ -55,31 +54,21 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
         when(intent?.action){
             PREVIOUS -> prevSong(this)
             PLAY -> if(mMediaPlayer?.isPlaying == true) pauseMusic() else playMusic()
-            NEXT -> if(MainViewModel.songs.size > 1)  nextSong(this)
+            NEXT ->  nextSong(this)
             EXIT -> exitApplication()
         }
         return START_STICKY
     }
 
     fun playSelectedSong(uri: Uri) {
+        Log.d("__service", "4")
         isPlaying = true
         mMediaPlayer?.release()
-        mAudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
-        var result: Int? = 0
-        result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mAudioManager?.requestAudioFocus((AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)).build())
-        } else {
-            mAudioManager?.requestAudioFocus(
-                this,
-                AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN
-            )
-        }
-        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             mMediaPlayer = MediaPlayer.create(this, uri)
             mMediaPlayer?.start()
             mMediaPlayer?.setOnCompletionListener(this)
-        }
+
+      Log.d("__service", "5")
     }
 
     private fun playMusic(){
@@ -104,7 +93,14 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
                 currentSong?.let { song ->
                     mMediaPlayer = MediaPlayer.create(context, song.uri)
                     mMediaPlayer?.start()
-                    //  playSelectedSong(song.uri)
+                    startCustomForegroundService(song)
+                }
+            } else {
+                indexSong = AtomicInteger( MainViewModel.songs.size - 1)
+                currentSong = MainViewModel.songs[indexSong.get()]
+                currentSong?.let { song ->
+                    mMediaPlayer = MediaPlayer.create(context, song.uri)
+                    mMediaPlayer?.start()
                     startCustomForegroundService(song)
                 }
             }
@@ -116,7 +112,15 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
             mMediaPlayer?.release()
             currentSong = null
             indexSong.getAndIncrement()
-            if (indexSong.get() > -1 && indexSong.get() < MainViewModel.songs.size - 1) {
+            if (indexSong.get() > -1 && indexSong.get() < MainViewModel.songs.size) {
+                currentSong = MainViewModel.songs[indexSong.get()]
+                currentSong?.let { song ->
+                    mMediaPlayer = MediaPlayer.create(context, song.uri)
+                    mMediaPlayer?.start()
+                    startCustomForegroundService(song)
+                }
+            } else {
+                indexSong = AtomicInteger(0)
                 currentSong = MainViewModel.songs[indexSong.get()]
                 currentSong?.let { song ->
                     mMediaPlayer = MediaPlayer.create(context, song.uri)
@@ -214,22 +218,12 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
             .build()
     }
 
-    fun handlePlayPause() {
-      //  if (PlayerActivity.isPlaying) pauseMusic() else playMusic()
-
-        //update playback state for notification
-        mediaSession.setPlaybackState(getPlayBackState())
-    }
 
     override fun onAudioFocusChange(focusChange: Int) {
-        if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
-            mMediaPlayer?.pause();
-        } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-            mMediaPlayer?.start();
-        } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-            length = mMediaPlayer?.currentPosition;
-            Log.d("loss focus", "loss of focus");
-            mMediaPlayer?.release()
+        if (focusChange <= 0) {
+            pauseMusic()
+        } else {
+            playMusic()
         }
     }
 

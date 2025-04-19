@@ -5,12 +5,11 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class MainViewModel:ViewModel() {
+class MainViewModel : ViewModel() {
 
     companion object {
         private val _songs = mutableStateListOf<Song>()
-        val songs:List<Song> = _songs
-
+        val songs: List<Song> = _songs
     }
 
     private val _permissionsGranted = MutableStateFlow(false)
@@ -24,7 +23,7 @@ class MainViewModel:ViewModel() {
         _permissionsGranted.value = true
     }
 
-    fun updateSongs(songs:List<Song>) {
+    fun updateSongs(songs: List<Song>) {
         _songs.addAll(songs)
     }
 }
