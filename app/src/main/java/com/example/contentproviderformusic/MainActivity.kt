@@ -15,6 +15,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,16 +27,12 @@ import androidx.compose.runtime.getValue
 import androidx.core.app.ActivityCompat
 import com.example.contentproviderformusic.ui.theme.ContentProviderForMusicTheme
 
+class MainActivity : ComponentActivity(), ServiceConnection {
 
-class MainActivity : ComponentActivity(), ServiceConnection, OnCompletionListener {
 
     private var musicService: MainService? = null
 
     private val mainViewModel by viewModels<MainViewModel>()
-
-    private var currentSong:Song? = null
-
-    private var indexSong:Int? = null
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,9 +46,10 @@ class MainActivity : ComponentActivity(), ServiceConnection, OnCompletionListene
                 initServiceAndPlaylist()
                 if (permissionGranted || requestRuntimePermission()) {
                     MainScreen(MainViewModel.songs) { index, song ->
-                        playSelectedSong(song.uri)
-                        currentSong = song
-                        indexSong = index
+                        musicService?.playSelectedSong(song.uri)
+                        musicService?.currentSong = song
+                        musicService?.indexSong?.set(index)
+                        musicService?.startCustomForegroundService(musicService?.currentSong!!,R.drawable.pause_icon)
                     }
                 }
             }
@@ -86,24 +84,35 @@ class MainActivity : ComponentActivity(), ServiceConnection, OnCompletionListene
 
     override fun onPause() {
         super.onPause()
-        currentSong?.let {
+        musicService?.currentSong?.let {
             musicService?.startCustomForegroundService(it)
         }
     }
 
     private fun requestRuntimePermission(): Boolean {
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU){
-            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE,)
-                != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 13)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    13
+                )
                 return false
             }
         } else {
             //android 13 or Higher permission request
-            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO)
-                != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_AUDIO,Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK,
-                    Manifest.permission.POST_NOTIFICATIONS), 13)
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this, arrayOf(
+                        Manifest.permission.READ_MEDIA_AUDIO,
+                        Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ), 13
+                )
                 return false
             }
         }
@@ -117,10 +126,10 @@ class MainActivity : ComponentActivity(), ServiceConnection, OnCompletionListene
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-            if(requestCode == 13 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this, "Permission Granted",Toast.LENGTH_SHORT).show()
-                mainViewModel.updatePermissionStatus()
-            }
+        if (requestCode == 13 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show()
+            mainViewModel.updatePermissionStatus()
+        }
     }
 
 
@@ -166,43 +175,9 @@ class MainActivity : ComponentActivity(), ServiceConnection, OnCompletionListene
         }
     }
 
-    private fun playSelectedSong(uri: Uri) {
-        musicService?.releaseMediaPlayer()
-        musicService?.mAudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
-        var result: Int? = 0
-        result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            musicService?.mAudioManager?.requestAudioFocus((AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)).build())
-        } else {
-            musicService?.mAudioManager?.requestAudioFocus(
-                musicService,
-                AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN
-            )
-        }
-        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            musicService?.mMediaPlayer = MediaPlayer.create(this, uri)
-            musicService?.mMediaPlayer?.reset()
-            musicService?.mMediaPlayer?.prepare()
-            musicService?.mMediaPlayer?.start()
-            musicService?.mMediaPlayer?.setOnCompletionListener(this)
-        }
-    }
-
-
-    override fun onCompletion(mp: MediaPlayer?) {
-        musicService?.releaseMediaPlayer()
-        currentSong = null
-        indexSong?.let { index ->
-            if (index < MainViewModel.songs.size-1) {
-                playSelectedSong(MainViewModel.songs[index +1].uri)
-            }
-        }
-    }
-
-
-
 
 }
+
 
 
 
