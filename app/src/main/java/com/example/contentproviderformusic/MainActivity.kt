@@ -1,14 +1,13 @@
 package com.example.contentproviderformusic
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.ContentUris
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
@@ -23,15 +22,29 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.example.contentproviderformusic.ui.theme.ContentProviderForMusicTheme
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicInteger
 
 class MainActivity : ComponentActivity(), ServiceConnection {
-
 
     private var musicService: MainService? = null
 
     private val mainViewModel by viewModels<MainViewModel>()
 
+    private val isPlaying = MutableStateFlow(false)
+
+    private val currentSong: MutableStateFlow<Song?> = MutableStateFlow(null)
+
+    private val currentDuration: MutableStateFlow<Float?> = MutableStateFlow(0f)
+
+    @SuppressLint("StateFlowValueCalledInComposition")
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,15 +52,30 @@ class MainActivity : ComponentActivity(), ServiceConnection {
         setContent {
             ContentProviderForMusicTheme {
                 val permissionGranted by mainViewModel.permissionGranted.collectAsState(false)
+                val isPlaying by isPlaying.collectAsStateWithLifecycle()
+                val currentDuration by currentDuration.collectAsStateWithLifecycle()
+                val currentSong by currentSong.collectAsStateWithLifecycle()
                 requestRuntimePermission()
                 getUserSongs()
                 initServiceAndPlaylist()
                 if (permissionGranted || requestRuntimePermission()) {
-                    MainScreen(MainViewModel.songs) { index, song ->
-                        musicService?.playSelectedSong(song.uri)
-                        musicService?.currentSong = song
-                        musicService?.indexSong?.set(index)
-                        musicService?.startCustomForegroundService(song, R.drawable.pause_icon)
+                    if (currentSong == null) {
+                        MainScreen(MainViewModel.songs) { index, song ->
+                            musicService?.playSelectedSong(song)
+                            musicService?.indexSong?.update { AtomicInteger(index) }
+                            musicService?.startCustomForegroundService(song, R.drawable.pause_icon)
+                        }
+
+                    } else {
+                        currentSong?.let { song ->
+                            SongScreen(song = song,
+                                isPlaying = isPlaying,
+                                onPrevious = { musicService?.prevSong() },
+                                onNext = { musicService?.nextSong() },
+                                onPlayPause = { if (isPlaying) musicService?.pauseMusic() else musicService?.playMusic() },
+                                sliderValue = currentDuration!!,
+                                onSliderValueChanged = { musicService?.onSeekBarValueChanged(it) })
+                        }
                     }
                 }
             }
@@ -56,34 +84,41 @@ class MainActivity : ComponentActivity(), ServiceConnection {
 
     private fun initServiceAndPlaylist() {
         val intent = Intent(this, MainService::class.java)
-        bindService(intent, this, BIND_AUTO_CREATE)
         startService(intent)
+        bindService(intent, this, BIND_AUTO_CREATE)
     }
 
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
         if (musicService == null) {
-            val binder = service as MainService.MyBinder
-            musicService = binder.currentService()
+            musicService = (service as MainService.MyBinder).currentService()
             musicService?.mAudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
             musicService?.mAudioManager?.requestAudioFocus(
-                    musicService,
-                    AudioManager.STREAM_MUSIC,
-                    AudioManager.AUDIOFOCUS_GAIN
-                )
+                musicService,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN
+            )
         }
-        //  musicService!!.seekBarSetup()
+        lifecycleScope.launch {
+            (service as MainService.MyBinder).isPlaying().collectLatest {
+                isPlaying.value = it
+            }
+        }
+        lifecycleScope.launch {
+            (service as MainService.MyBinder).currentDuration().collectLatest {
+                currentDuration.value = it
+            }
+        }
+        lifecycleScope.launch {
+            (service as MainService.MyBinder).getCurrentSong().collectLatest {
+                currentSong.value = it
+            }
+        }
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
         musicService = null
     }
 
-//    override fun onPause() {
-//        super.onPause()
-//        musicService?.currentSong?.let {
-//            musicService?.startCustomForegroundService(it)
-//        }
-//    }
 
     private fun requestRuntimePermission(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
