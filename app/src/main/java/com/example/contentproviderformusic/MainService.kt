@@ -3,7 +3,6 @@ package com.example.contentproviderformusic
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -11,7 +10,6 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.MediaPlayer.OnCompletionListener
-import android.net.Uri
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -20,6 +18,13 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.system.exitProcess
 
@@ -33,105 +38,145 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
 
     var mAudioManager: AudioManager? = null
 
-    var isPlaying = false
+    val isPlaying = MutableStateFlow(false)
 
-    var currentSong: Song? = null
+    val currentSong: MutableStateFlow<Song?> = MutableStateFlow(null)
 
-    var indexSong: AtomicInteger = AtomicInteger(-1)
+    val indexSong = MutableStateFlow(AtomicInteger(-1))
+
+    val currentDuration: MutableStateFlow<Float?> = MutableStateFlow(0f)
+
+    private val scope = CoroutineScope(Dispatchers.Main)
+
+    private var job: Job? = null
+
+    inner class MyBinder : Binder() {
+        fun currentService(): MainService { return this@MainService }
+        fun isPlaying() = this@MainService.isPlaying
+        fun getCurrentSong() = this@MainService.currentSong
+        fun currentDuration() = this@MainService.currentDuration
+    }
 
     override fun onBind(intent: Intent?): IBinder {
         mediaSession = MediaSessionCompat(baseContext, "My Music")
         return myBinder
     }
 
-    inner class MyBinder : Binder() {
-        fun currentService(): MainService {
-            return this@MainService
+   private fun updateSongDuration() {
+        job = scope.launch {
+            if (mMediaPlayer?.isPlaying?.not() == true) return@launch
+            while (true) {
+                currentDuration.update { mMediaPlayer?.currentPosition?.toFloat() }
+                delay(1000)
+            }
+        }
+    }
+
+    fun onSeekBarValueChanged(value:Float) {
+        job?.cancel()
+        currentDuration.update { value }
+        mMediaPlayer?.seekTo(value.toInt())
+        job = scope.launch {
+            if (mMediaPlayer?.isPlaying?.not() == true) return@launch
+            while (true) {
+                currentDuration.update { mMediaPlayer?.currentPosition?.toFloat() }
+                delay(1000)
+            }
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when(intent?.action){
-            PREVIOUS -> prevSong(this)
-            PLAY -> if(mMediaPlayer?.isPlaying == true) pauseMusic() else playMusic()
-            NEXT ->  nextSong(this)
+        when (intent?.action) {
+            PREVIOUS -> prevSong()
+            PLAY -> if (mMediaPlayer?.isPlaying == true) pauseMusic() else playMusic()
+            NEXT -> nextSong()
             EXIT -> exitApplication()
         }
         return START_STICKY
     }
 
-    fun playSelectedSong(uri: Uri) {
-        Log.d("__service", "4")
-        isPlaying = true
+    fun playSelectedSong(song:Song) {
+        job?.cancel()
+        isPlaying.update { true }
         mMediaPlayer?.release()
-            mMediaPlayer = MediaPlayer.create(this, uri)
-            mMediaPlayer?.start()
-            mMediaPlayer?.setOnCompletionListener(this)
-
-      Log.d("__service", "5")
-    }
-
-    private fun playMusic(){
-        isPlaying = true
+        mMediaPlayer = MediaPlayer.create(this,song.uri)
         mMediaPlayer?.start()
-        startCustomForegroundService(currentSong!!,R.drawable.pause_icon)
-     }
+        mMediaPlayer?.setOnCompletionListener(this)
+        currentSong.value = song
+        updateSongDuration()
+    }
 
-    private fun pauseMusic(){
-        isPlaying = false
+    fun playMusic() {
+        job?.cancel()
+        isPlaying.update { true }
+        mMediaPlayer?.start()
+        updateSongDuration()
+        startCustomForegroundService(currentSong.value!!, R.drawable.pause_icon)
+    }
+
+    fun pauseMusic() {
+        job?.cancel()
+        isPlaying.update { false }
         mMediaPlayer?.pause()
-        startCustomForegroundService(currentSong!!, R.drawable.play_icon)
+        updateSongDuration()
+        startCustomForegroundService(currentSong.value!!, R.drawable.play_icon)
     }
 
-    private fun prevSong(context: Context){
-        if(MainViewModel.songs.size > 1) {
-            mMediaPlayer?.release()
-            currentSong = null
-            indexSong.getAndDecrement()
-            if (indexSong.get() > -1 && indexSong.get() < MainViewModel.songs.size - 1) {
-                currentSong = MainViewModel.songs[indexSong.get()]
-                currentSong?.let { song ->
-                    mMediaPlayer = MediaPlayer.create(context, song.uri)
-                    mMediaPlayer?.start()
-                    startCustomForegroundService(song)
-                }
-            } else {
-                indexSong = AtomicInteger( MainViewModel.songs.size - 1)
-                currentSong = MainViewModel.songs[indexSong.get()]
-                currentSong?.let { song ->
-                    mMediaPlayer = MediaPlayer.create(context, song.uri)
-                    mMediaPlayer?.start()
-                    startCustomForegroundService(song)
-                }
-            }
-        }
-    }
-
-    private fun nextSong(context: Context) {
+    fun prevSong() {
+        job?.cancel()
         if (MainViewModel.songs.size > 1) {
             mMediaPlayer?.release()
-            currentSong = null
-            indexSong.getAndIncrement()
-            if (indexSong.get() > -1 && indexSong.get() < MainViewModel.songs.size) {
-                currentSong = MainViewModel.songs[indexSong.get()]
-                currentSong?.let { song ->
-                    mMediaPlayer = MediaPlayer.create(context, song.uri)
+            currentSong.value = null
+            indexSong.value.getAndDecrement()
+            if (indexSong.value.get() > -1 && indexSong.value.get() < MainViewModel.songs.size - 1) {
+                currentSong.update { MainViewModel.songs[indexSong.value.get()] }
+                currentSong.value?.let { song ->
+                    mMediaPlayer = MediaPlayer.create(this, song.uri)
                     mMediaPlayer?.start()
                     startCustomForegroundService(song)
+                    updateSongDuration()
                 }
             } else {
-                indexSong = AtomicInteger(0)
-                currentSong = MainViewModel.songs[indexSong.get()]
-                currentSong?.let { song ->
-                    mMediaPlayer = MediaPlayer.create(context, song.uri)
+                indexSong.update { AtomicInteger(MainViewModel.songs.size - 1) }
+                currentSong.update { MainViewModel.songs[indexSong.value.get()] }
+                currentSong.value?.let { song ->
+                    mMediaPlayer = MediaPlayer.create(this, song.uri)
                     mMediaPlayer?.start()
                     startCustomForegroundService(song)
+                    updateSongDuration()
                 }
             }
         }
     }
 
-    fun startCustomForegroundService(song: Song,playPauseBtn: Int=R.drawable.pause_icon) {
+    fun nextSong() {
+        job?.cancel()
+        if (MainViewModel.songs.size > 1) {
+            mMediaPlayer?.release()
+            currentSong.value = null
+            indexSong.value.getAndIncrement()
+            if (indexSong.value.get() > -1 && indexSong.value.get() < MainViewModel.songs.size) {
+                currentSong.update { MainViewModel.songs[indexSong.value.get()] }
+                currentSong.value?.let { song ->
+                    mMediaPlayer = MediaPlayer.create(this, song.uri)
+                    mMediaPlayer?.start()
+                    startCustomForegroundService(song)
+                    updateSongDuration()
+                }
+            } else {
+                indexSong.update { AtomicInteger(0) }
+                currentSong.update { MainViewModel.songs[indexSong.value.get()] }
+                currentSong.value?.let { song ->
+                    mMediaPlayer = MediaPlayer.create(this, song.uri)
+                    mMediaPlayer?.start()
+                    startCustomForegroundService(song)
+                    updateSongDuration()
+                }
+            }
+        }
+    }
+
+    fun startCustomForegroundService(song: Song, playPauseBtn: Int = R.drawable.pause_icon) {
 
         val intent = Intent(baseContext, MainActivity::class.java)
 
@@ -156,7 +201,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
         val exitPendingIntent = PendingIntent.getService(this, 0, exitIntent, flag)
 
         val imgArt = getImgArt(song.data)
-        val image:Bitmap? = if (imgArt != null) {
+        val image: Bitmap? = if (imgArt != null) {
             BitmapFactory.decodeByteArray(imgArt, 0, imgArt.size)
         } else {
             BitmapFactory.decodeResource(resources, R.drawable.music_player_icon_slash_screen)
@@ -167,7 +212,10 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
             .setContentTitle(song.title)
             .setContentText(song.artist)
             .setSmallIcon(R.drawable.music_player_icon_slash_screen).setLargeIcon(image)
-            .setStyle(androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionToken))
+            .setStyle(
+                androidx.media.app.NotificationCompat.MediaStyle()
+                    .setMediaSession(mediaSession.sessionToken)
+            )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOnlyAlertOnce(true)
@@ -182,7 +230,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
             mMediaPlayer?.duration?.let {
                 mediaSession.setMetadata(
                     MediaMetadataCompat.Builder().putLong(
-                        MediaMetadataCompat.METADATA_KEY_DURATION,it.toLong()
+                        MediaMetadataCompat.METADATA_KEY_DURATION, it.toLong()
                     ).build()
                 )
             }
@@ -212,8 +260,9 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
 
         return PlaybackStateCompat.Builder()
             .setState(
-            if (mMediaPlayer?.isPlaying == true) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED,
-            mMediaPlayer!!.currentPosition.toLong(), playbackSpeed)
+                if (mMediaPlayer?.isPlaying == true) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED,
+                mMediaPlayer!!.currentPosition.toLong(), playbackSpeed
+            )
             .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE or PlaybackStateCompat.ACTION_SEEK_TO or PlaybackStateCompat.ACTION_SKIP_TO_NEXT or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
             .build()
     }
@@ -228,20 +277,23 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
-        currentSong = null
-        indexSong.getAndIncrement()
-        if (indexSong.get() > -1 && indexSong.get() < MainViewModel.songs.size) {
-            currentSong = MainViewModel.songs[indexSong.get()]
-            currentSong?.let { song ->
-                playSelectedSong(song.uri)
+        job?.cancel()
+        currentSong.value = null
+        indexSong.value.getAndIncrement()
+        if (indexSong.value.get() > -1 && indexSong.value.get() < MainViewModel.songs.size) {
+            currentSong.update { MainViewModel.songs[indexSong.value.get()] }
+            currentSong.value?.let { song ->
+                playSelectedSong(song)
                 startCustomForegroundService(song)
+                updateSongDuration()
             }
         } else {
-            indexSong = AtomicInteger(0)
-            currentSong = MainViewModel.songs[indexSong.get()]
-            currentSong?.let { song ->
-                playSelectedSong(song.uri)
+            indexSong.update { AtomicInteger(0) }
+            currentSong.update { MainViewModel.songs[indexSong.value.get()] }
+            currentSong.value?.let { song ->
+                playSelectedSong(song)
                 startCustomForegroundService(song)
+                updateSongDuration()
             }
         }
     }
@@ -254,7 +306,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
         exitProcess(1)
     }
 
-    companion object{
+    companion object {
         const val PLAY = "play"
         const val NEXT = "next"
         const val PREVIOUS = "previous"
