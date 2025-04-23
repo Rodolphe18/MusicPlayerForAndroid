@@ -178,7 +178,10 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
 
     fun startCustomForegroundService(song: Song, playPauseBtn: Int = R.drawable.pause_icon) {
 
-        val intent = Intent(baseContext, MainActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java).apply {
+            putExtra("open_song", "")
+            setAction("act")
+        }
 
         val flag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             PendingIntent.FLAG_IMMUTABLE
@@ -209,6 +212,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
 
         val notification = NotificationCompat
             .Builder(this, "main_channel")
+            .setContentIntent(contentIntent)
             .setContentTitle(song.title)
             .setContentText(song.artist)
             .setSmallIcon(R.drawable.music_player_icon_slash_screen).setLargeIcon(image)
@@ -263,7 +267,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
                 if (mMediaPlayer?.isPlaying == true) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED,
                 mMediaPlayer!!.currentPosition.toLong(), playbackSpeed
             )
-            .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE or PlaybackStateCompat.ACTION_SEEK_TO or PlaybackStateCompat.ACTION_SKIP_TO_NEXT or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS)
+            .setActions(PlaybackStateCompat.ACTION_SEEK_TO)
             .build()
     }
 
@@ -278,6 +282,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
 
     override fun onCompletion(mp: MediaPlayer?) {
         job?.cancel()
+        Log.d("debug_on_completion", "completion")
         currentSong.value = null
         indexSong.value.getAndIncrement()
         if (indexSong.value.get() > -1 && indexSong.value.get() < MainViewModel.songs.size) {

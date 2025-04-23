@@ -12,13 +12,13 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.app.ActivityCompat
@@ -26,7 +26,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.example.contentproviderformusic.ui.theme.ContentProviderForMusicTheme
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -43,6 +42,7 @@ class MainActivity : ComponentActivity(), ServiceConnection {
     private val currentSong: MutableStateFlow<Song?> = MutableStateFlow(null)
 
     private val currentDuration: MutableStateFlow<Float?> = MutableStateFlow(0f)
+
 
     @SuppressLint("StateFlowValueCalledInComposition")
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -66,6 +66,18 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                             musicService?.startCustomForegroundService(song, R.drawable.pause_icon)
                         }
 
+                    } else if (intent.getStringExtra("open_song") != null) {
+
+                        currentSong?.let { song ->
+                            SongScreen(song = song,
+                                isPlaying = isPlaying,
+                                onPrevious = { musicService?.prevSong() },
+                                onNext = { musicService?.nextSong() },
+                                onPlayPause = { if (isPlaying) musicService?.pauseMusic() else musicService?.playMusic() },
+                                sliderValue = currentDuration!!,
+                                onSliderValueChanged = { musicService?.onSeekBarValueChanged(it) })
+                            LaunchedEffect(Unit) { if (isPlaying) musicService?.playMusic() else musicService?.pauseMusic() }
+                        }
                     } else {
                         currentSong?.let { song ->
                             SongScreen(song = song,
