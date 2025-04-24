@@ -1,10 +1,8 @@
 package com.example.contentproviderformusic
 
-import android.app.Service
 import android.media.MediaMetadataRetriever
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import kotlin.system.exitProcess
 
 fun getImgArt(path: String): ByteArray? {
     val retriever = MediaMetadataRetriever()
