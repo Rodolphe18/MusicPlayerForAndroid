@@ -58,10 +58,11 @@ fun SongScreen(
     onNext: () -> Unit,
     onPlayPause: () -> Unit,
     sliderValue: Float,
-    onSliderValueChanged: (Float) -> Unit
+    onSliderValueChanged: (Float) -> Unit,
+    onNavigationClick: () -> Unit
 ) {
     Scaffold(topBar = {
-        SongAppBar(song.title, Icons.AutoMirrored.Filled.ArrowBack, Icons.Filled.Favorite)
+        SongAppBar(song.title, Icons.AutoMirrored.Filled.ArrowBack, Icons.Filled.Favorite, onNavigationClick = onNavigationClick)
     }) {
         SongBody(
             song,
@@ -92,7 +93,7 @@ fun SongBody(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        AlbumImage(data = song.data, imageSize = 300.dp, clipSize = 16.dp)
+        AlbumImage(data = song.data, modifier = Modifier.size(300.dp), clipSize = 16.dp)
         Spacer(Modifier.height(36.dp))
         Text(
             text = song.title,
@@ -115,8 +116,7 @@ fun SongBody(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFD2B48C))
-                    .clip(CircleShape), onClick = onPlayPause
+                    .background(Color(0xFFD2B48C)), onClick = onPlayPause
             ) {
                 Icon(
                     painter = if (isPlaying) painterResource(R.drawable.pause_icon) else painterResource(
@@ -129,8 +129,7 @@ fun SongBody(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFD2B48C))
-                    .clip(CircleShape), onClick = onNext
+                    .background(Color(0xFFD2B48C)), onClick = onNext
             ) {
                 Icon(painter = painterResource(R.drawable.next_icon), contentDescription = null)
             }
@@ -172,7 +171,7 @@ fun SongBody(
 }
 
 @Composable
-fun AlbumImage(data: String, imageSize: Dp, clipSize: Dp) {
+fun AlbumImage(modifier: Modifier=Modifier, data: String, clipSize: Dp=0.dp) {
     Box(modifier = Modifier.clip(RoundedCornerShape(clipSize))) {
         val context = LocalContext.current
         val imgArt = getImgArt(data)
@@ -185,7 +184,7 @@ fun AlbumImage(data: String, imageSize: Dp, clipSize: Dp) {
             )
         }
         AsyncImage(
-            modifier = Modifier.size(imageSize),
+            modifier = modifier,
             model = image,
             contentDescription = null,
             contentScale = ContentScale.FillHeight
