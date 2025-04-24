@@ -6,11 +6,11 @@ import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
-import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -228,19 +228,21 @@ fun SongBody(
 
 @Composable
 fun AlbumImage(modifier: Modifier = Modifier, data: String, clipSize: Dp = 0.dp) {
-    Box(modifier = Modifier.clip(RoundedCornerShape(clipSize))) {
-        val context = LocalContext.current
-        val imgArt = getImgArt(data)
-        val image = if (imgArt != null) {
-            BitmapFactory.decodeByteArray(imgArt, 0, imgArt.size)
-        } else {
-            BitmapFactory.decodeResource(
-                context.resources,
-                R.drawable.music_player_icon_slash_screen
-            )
-        }
+    val context = LocalContext.current
+    val imgArt = getImgArt(data)
+    val image = if (imgArt != null) {
+        BitmapFactory.decodeByteArray(imgArt, 0, imgArt.size)
+    } else {
+        BitmapFactory.decodeResource(
+            context.resources,
+            R.drawable.note1841098_640
+        )
+    }
+    Box(
+        modifier = Modifier.clip(RoundedCornerShape(clipSize))
+    ) {
         AsyncImage(
-            modifier = modifier,
+            modifier = if (imgArt == null) modifier.background(Color.LightGray.copy(alpha = 0.3f)) else modifier,
             model = image,
             contentDescription = null,
             contentScale = ContentScale.FillHeight

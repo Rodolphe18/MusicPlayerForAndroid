@@ -224,7 +224,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
         val image: Bitmap? = if (imgArt != null) {
             BitmapFactory.decodeByteArray(imgArt, 0, imgArt.size)
         } else {
-            BitmapFactory.decodeResource(resources, R.drawable.music_player_icon_slash_screen)
+            BitmapFactory.decodeResource(resources, R.drawable.music_player_icon_slash_screen2)
         }
 
         val notification = NotificationCompat
@@ -232,7 +232,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
             .setContentIntent(contentIntent)
             .setContentTitle(song.title)
             .setContentText(song.artist)
-            .setSmallIcon(R.drawable.music_player_icon_slash_screen).setLargeIcon(image)
+            .setSmallIcon(R.drawable.music_player_icon_slash_screen2).setLargeIcon(image)
             .setStyle(
                 androidx.media.app.NotificationCompat.MediaStyle()
                     .setMediaSession(mediaSession.sessionToken)

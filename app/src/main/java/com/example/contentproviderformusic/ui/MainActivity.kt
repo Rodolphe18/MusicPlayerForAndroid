@@ -8,7 +8,9 @@ import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.example.contentproviderformusic.R
@@ -51,6 +54,11 @@ class MainActivity : ComponentActivity(), ServiceConnection {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        var keep = true
+        val handler = Handler(Looper.getMainLooper())
+        val runner = Runnable { keep = false }
+        handler.postDelayed(runner, 2000)
+        installSplashScreen().setKeepOnScreenCondition { keep }
         enableEdgeToEdge()
         setContent {
             ContentProviderForMusicTheme {
@@ -214,6 +222,7 @@ class MainActivity : ComponentActivity(), ServiceConnection {
         val intent = Intent(this, MainService::class.java)
         startService(intent)
         bindService(intent, this, BIND_AUTO_CREATE)
+        mainViewModel.isLoading.value = false
     }
 
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {

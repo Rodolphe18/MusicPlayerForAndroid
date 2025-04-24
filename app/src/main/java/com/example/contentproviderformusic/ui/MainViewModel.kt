@@ -12,6 +12,8 @@ class MainViewModel : ViewModel() {
 
     val isPlaying = MutableStateFlow(false)
 
+    val isLoading = MutableStateFlow(true)
+
     val currentSong: MutableStateFlow<Song?> = MutableStateFlow(null)
 
     val currentDuration: MutableStateFlow<Float?> = MutableStateFlow(0f)
