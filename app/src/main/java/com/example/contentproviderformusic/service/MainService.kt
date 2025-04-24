@@ -1,4 +1,4 @@
-package com.example.contentproviderformusic
+package com.example.contentproviderformusic.service
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
@@ -18,6 +18,12 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.example.contentproviderformusic.ui.MainActivity
+import com.example.contentproviderformusic.R
+import com.example.contentproviderformusic.ui.ScreenStatus
+import com.example.contentproviderformusic.repository.UserDataRepository
+import com.example.contentproviderformusic.utils.getImgArt
+import com.example.contentproviderformusic.model.Song
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -50,11 +56,14 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
 
     private var job: Job? = null
 
+    val screenStatus = MutableStateFlow(ScreenStatus.MAIN_SCREEN)
+
     inner class MyBinder : Binder() {
         fun currentService(): MainService { return this@MainService }
         fun isPlaying() = this@MainService.isPlaying
         fun getCurrentSong() = this@MainService.currentSong
         fun currentDuration() = this@MainService.currentDuration
+        fun getScreenStatus() = this@MainService.screenStatus
     }
 
     override fun onBind(intent: Intent?): IBinder {
@@ -95,7 +104,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
         return START_STICKY
     }
 
-    fun playSelectedSong(song:Song) {
+    fun playSelectedSong(song: Song) {
         job?.cancel()
         isPlaying.update { true }
         mMediaPlayer?.release()
@@ -124,12 +133,12 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
 
     fun prevSong() {
         job?.cancel()
-        if (MainViewModel.songs.size > 1) {
+        if (UserDataRepository.songs.size > 1) {
             mMediaPlayer?.release()
             currentSong.value = null
             indexSong.value.getAndDecrement()
-            if (indexSong.value.get() > -1 && indexSong.value.get() < MainViewModel.songs.size - 1) {
-                currentSong.update { MainViewModel.songs[indexSong.value.get()] }
+            if (indexSong.value.get() > -1 && indexSong.value.get() < UserDataRepository.songs.size - 1) {
+                currentSong.update { UserDataRepository.songs[indexSong.value.get()] }
                 currentSong.value?.let { song ->
                     mMediaPlayer = MediaPlayer.create(this, song.uri)
                     mMediaPlayer?.start()
@@ -137,8 +146,8 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
                     updateSongDuration()
                 }
             } else {
-                indexSong.update { AtomicInteger(MainViewModel.songs.size - 1) }
-                currentSong.update { MainViewModel.songs[indexSong.value.get()] }
+                indexSong.update { AtomicInteger(UserDataRepository.songs.size - 1) }
+                currentSong.update { UserDataRepository.songs[indexSong.value.get()] }
                 currentSong.value?.let { song ->
                     mMediaPlayer = MediaPlayer.create(this, song.uri)
                     mMediaPlayer?.start()
@@ -151,12 +160,12 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
 
     fun nextSong() {
         job?.cancel()
-        if (MainViewModel.songs.size > 1) {
+        if (UserDataRepository.songs.size > 1) {
             mMediaPlayer?.release()
             currentSong.value = null
             indexSong.value.getAndIncrement()
-            if (indexSong.value.get() > -1 && indexSong.value.get() < MainViewModel.songs.size) {
-                currentSong.update { MainViewModel.songs[indexSong.value.get()] }
+            if (indexSong.value.get() > -1 && indexSong.value.get() < UserDataRepository.songs.size) {
+                currentSong.update { UserDataRepository.songs[indexSong.value.get()] }
                 currentSong.value?.let { song ->
                     mMediaPlayer = MediaPlayer.create(this, song.uri)
                     mMediaPlayer?.start()
@@ -165,7 +174,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
                 }
             } else {
                 indexSong.update { AtomicInteger(0) }
-                currentSong.update { MainViewModel.songs[indexSong.value.get()] }
+                currentSong.update { UserDataRepository.songs[indexSong.value.get()] }
                 currentSong.value?.let { song ->
                     mMediaPlayer = MediaPlayer.create(this, song.uri)
                     mMediaPlayer?.start()
@@ -285,8 +294,8 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
         Log.d("debug_on_completion", "completion")
         currentSong.value = null
         indexSong.value.getAndIncrement()
-        if (indexSong.value.get() > -1 && indexSong.value.get() < MainViewModel.songs.size) {
-            currentSong.update { MainViewModel.songs[indexSong.value.get()] }
+        if (indexSong.value.get() > -1 && indexSong.value.get() < UserDataRepository.songs.size) {
+            currentSong.update { UserDataRepository.songs[indexSong.value.get()] }
             currentSong.value?.let { song ->
                 playSelectedSong(song)
                 startCustomForegroundService(song)
@@ -294,7 +303,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
             }
         } else {
             indexSong.update { AtomicInteger(0) }
-            currentSong.update { MainViewModel.songs[indexSong.value.get()] }
+            currentSong.update { UserDataRepository.songs[indexSong.value.get()] }
             currentSong.value?.let { song ->
                 playSelectedSong(song)
                 startCustomForegroundService(song)

@@ -1,8 +1,9 @@
-package com.example.contentproviderformusic
+package com.example.contentproviderformusic.utils
 
 import android.content.ContentUris
 import android.content.Context
 import android.provider.MediaStore
+import com.example.contentproviderformusic.model.Song
 
 object MediaManager {
 

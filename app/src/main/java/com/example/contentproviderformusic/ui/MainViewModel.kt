@@ -1,6 +1,7 @@
-package com.example.contentproviderformusic
+package com.example.contentproviderformusic.ui
 
 import androidx.lifecycle.ViewModel
+import com.example.contentproviderformusic.model.Song
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 

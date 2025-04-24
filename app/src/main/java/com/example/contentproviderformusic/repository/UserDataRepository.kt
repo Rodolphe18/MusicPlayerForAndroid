@@ -1,6 +1,7 @@
-package com.example.contentproviderformusic
+package com.example.contentproviderformusic.repository
 
 import androidx.compose.runtime.mutableStateListOf
+import com.example.contentproviderformusic.model.Song
 
 object UserDataRepository {
 

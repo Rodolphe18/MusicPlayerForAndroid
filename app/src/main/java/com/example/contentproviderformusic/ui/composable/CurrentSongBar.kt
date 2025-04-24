@@ -1,4 +1,4 @@
-package com.example.contentproviderformusic
+package com.example.contentproviderformusic.ui.composable
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -30,6 +30,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.contentproviderformusic.R
+import com.example.contentproviderformusic.model.Song
+import com.example.contentproviderformusic.utils.formatDuration
 
 
 @OptIn(ExperimentalMaterial3Api::class)

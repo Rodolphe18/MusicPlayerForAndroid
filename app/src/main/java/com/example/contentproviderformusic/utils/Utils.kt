@@ -1,4 +1,4 @@
-package com.example.contentproviderformusic
+package com.example.contentproviderformusic.utils
 
 import android.media.MediaMetadataRetriever
 import java.util.Locale

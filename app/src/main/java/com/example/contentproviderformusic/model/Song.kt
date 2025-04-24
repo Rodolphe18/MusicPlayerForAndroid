@@ -1,4 +1,4 @@
-package com.example.contentproviderformusic
+package com.example.contentproviderformusic.model
 
 import android.net.Uri
 

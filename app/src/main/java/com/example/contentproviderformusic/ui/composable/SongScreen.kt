@@ -1,4 +1,4 @@
-package com.example.contentproviderformusic
+package com.example.contentproviderformusic.ui.composable
 
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
@@ -46,6 +46,10 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.contentproviderformusic.R
+import com.example.contentproviderformusic.model.Song
+import com.example.contentproviderformusic.utils.formatDuration
+import com.example.contentproviderformusic.utils.getImgArt
 
 
 @OptIn(ExperimentalMaterial3Api::class)
