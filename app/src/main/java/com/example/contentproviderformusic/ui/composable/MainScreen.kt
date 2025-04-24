@@ -38,7 +38,6 @@ fun MainScreen(songs:List<Song>, onClick:(Int, Song)->Unit) {
                     }, verticalAlignment = Alignment.CenterVertically) {
                         AlbumImage(Modifier.size(50.dp),song.data,  8.dp)
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center,
                             modifier = Modifier
                                 .weight(1f)

@@ -54,11 +54,7 @@ class MainActivity : ComponentActivity(), ServiceConnection {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        var keep = true
-        val handler = Handler(Looper.getMainLooper())
-        val runner = Runnable { keep = false }
-        handler.postDelayed(runner, 2000)
-        installSplashScreen().setKeepOnScreenCondition { keep }
+        installSplashScreen().setKeepOnScreenCondition { mainViewModel.isLoading.value }
         enableEdgeToEdge()
         setContent {
             ContentProviderForMusicTheme {
@@ -85,7 +81,7 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .padding(bottom = 32.dp)
+                                        .padding(bottom = 62.dp)
                                 ) {
                                     MainScreen(UserDataRepository.songs) { index, song ->
                                         musicService?.screenStatus?.value = ScreenStatus.SONG_SCREEN

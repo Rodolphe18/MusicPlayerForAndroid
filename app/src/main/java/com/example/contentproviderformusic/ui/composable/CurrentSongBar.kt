@@ -1,5 +1,6 @@
 package com.example.contentproviderformusic.ui.composable
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.example.contentproviderformusic.R
 import com.example.contentproviderformusic.model.Song
 import com.example.contentproviderformusic.utils.formatDuration
+import kotlin.math.roundToInt
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -58,6 +60,7 @@ fun CurrentSongBar(
     onClose:()->Unit,
     onVerticalDrag: () -> Unit
 ) {
+
     val density = LocalDensity.current
     val state = remember {
         AnchoredDraggableState(
@@ -87,7 +90,7 @@ fun CurrentSongBar(
     }
     Column(modifier = modifier
         .fillMaxWidth()
-        .height(135.dp)
+        .height(130.dp + state.requireOffset().roundToInt().dp)
         .border(Dp.Hairline, Color.Black)
         .background(Color.White)
         .clickable { onClick() }
