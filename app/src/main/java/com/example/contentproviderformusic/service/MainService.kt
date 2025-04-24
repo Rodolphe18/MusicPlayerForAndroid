@@ -72,6 +72,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
     }
 
    private fun updateSongDuration() {
+       job?.cancel()
         job = scope.launch {
             if (mMediaPlayer?.isPlaying?.not() == true) return@launch
             while (true) {
@@ -79,6 +80,13 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, OnComple
                 delay(1000)
             }
         }
+    }
+
+    fun stopSong() {
+        job?.cancel()
+        currentSong.value = null
+        mMediaPlayer?.release()
+
     }
 
     fun onSeekBarValueChanged(value:Float) {

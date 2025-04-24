@@ -74,9 +74,11 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                     when (screenStatus) {
                         ScreenStatus.MAIN_SCREEN -> {
                             if (intent.getStringExtra("open_song") != null) {
-                                Box(modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(bottom = 32.dp)) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(bottom = 32.dp)
+                                ) {
                                     MainScreen(UserDataRepository.songs) { index, song ->
                                         musicService?.screenStatus?.value = ScreenStatus.SONG_SCREEN
                                         musicService?.playSelectedSong(song)
@@ -90,28 +92,35 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                                         CurrentSongBar(
                                             Modifier.align(Alignment.BottomCenter),
                                             song,
-                                            isPlaying,{
-                                            musicService?.prevSong()},
+                                            isPlaying, {
+                                                musicService?.prevSong()
+                                            },
                                             {
                                                 musicService?.nextSong()
-                                            }
-                                        , {
-                                            if (isPlaying) musicService?.pauseMusic() else musicService?.playMusic()
-                                        },currentDuration!!,
+                                            }, {
+                                                if (isPlaying) musicService?.pauseMusic() else musicService?.playMusic()
+                                            }, currentDuration!!,
                                             {
                                                 musicService?.onSeekBarValueChanged(
                                                     it
                                                 )
-                                            }, { musicService?.screenStatus?.value =
-                                                ScreenStatus.SONG_SCREEN
-                                            })
+                                            }, {
+                                                musicService?.screenStatus?.value =
+                                                    ScreenStatus.SONG_SCREEN
+                                            }, {
+                                                musicService?.stopSong()
+                                            }, {musicService?.screenStatus?.value =
+                                                ScreenStatus.SONG_SCREEN}
+                                            )
                                     }
                                 }
                                 LaunchedEffect(Unit) { if (isPlaying) musicService?.playMusic() else musicService?.pauseMusic() }
                             } else {
-                                Box(modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(bottom =42.dp)) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(bottom = 42.dp)
+                                ) {
                                     MainScreen(UserDataRepository.songs) { index, song ->
                                         musicService?.screenStatus?.value = ScreenStatus.SONG_SCREEN
                                         musicService?.playSelectedSong(song)
@@ -127,20 +136,22 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                                             song,
                                             isPlaying,
                                             {
-                                                musicService?.prevSong()},
+                                                musicService?.prevSong()
+                                            },
                                             {
                                                 musicService?.nextSong()
-                                            }
-                                        , {
-                                            if (isPlaying) musicService?.pauseMusic() else musicService?.playMusic()
-                                        }, currentDuration!!,
-                                         {
-                                            musicService?.onSeekBarValueChanged(
-                                                it
-                                            )
-                                        },{ musicService?.screenStatus?.value =
-                                                ScreenStatus.SONG_SCREEN
-                                            })
+                                            }, {
+                                                if (isPlaying) musicService?.pauseMusic() else musicService?.playMusic()
+                                            }, currentDuration!!,
+                                            {
+                                                musicService?.onSeekBarValueChanged(
+                                                    it
+                                                )
+                                            }, {
+                                                musicService?.screenStatus?.value =
+                                                    ScreenStatus.SONG_SCREEN
+                                            }, { musicService?.stopSong()},{musicService?.screenStatus?.value =
+                                                ScreenStatus.SONG_SCREEN})
                                     }
 
                                 }
@@ -164,7 +175,8 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                                         onNavigationClick = {
                                             musicService?.screenStatus?.value =
                                                 ScreenStatus.MAIN_SCREEN
-                                        })
+                                        }, onVerticalDrag = {musicService?.screenStatus?.value =
+                                            ScreenStatus.MAIN_SCREEN})
                                     LaunchedEffect(Unit) { if (isPlaying) musicService?.playMusic() else musicService?.pauseMusic() }
                                 }
                             } else {
@@ -181,6 +193,9 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                                             )
                                         },
                                         onNavigationClick = {
+                                            musicService?.screenStatus?.value =
+                                                ScreenStatus.MAIN_SCREEN
+                                        }, onVerticalDrag = {
                                             musicService?.screenStatus?.value =
                                                 ScreenStatus.MAIN_SCREEN
                                         })

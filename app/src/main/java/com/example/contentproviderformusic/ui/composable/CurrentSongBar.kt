@@ -1,9 +1,16 @@
 package com.example.contentproviderformusic.ui.composable
 
+import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -35,7 +43,7 @@ import com.example.contentproviderformusic.model.Song
 import com.example.contentproviderformusic.utils.formatDuration
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CurrentSongBar(
     modifier: Modifier = Modifier,
@@ -46,14 +54,44 @@ fun CurrentSongBar(
     onPlayPause: () -> Unit,
     sliderValue: Float,
     onSliderValueChanged: (Float) -> Unit,
-    onClick:()->Unit
+    onClick:()->Unit,
+    onClose:()->Unit,
+    onVerticalDrag: () -> Unit
 ) {
+    val density = LocalDensity.current
+    val state = remember {
+        AnchoredDraggableState(
+            // 2
+            initialValue = DragAnchors.Start,
+            // 3
+            positionalThreshold = { distance: Float -> distance * 0.5f },
+            // 4
+            velocityThreshold = { with(density) { 100.dp.toPx() } },
+            // 5
+            snapAnimationSpec = tween(),
+            decayAnimationSpec = exponentialDecay(),
+            confirmValueChange = {
+                onVerticalDrag()
+                true
+            }
+        ).apply {
+            // 6
+            updateAnchors(
+                // 7
+                DraggableAnchors {
+                    DragAnchors.Start at 0f
+                    DragAnchors.End at 400f
+                }
+            )
+        }
+    }
     Column(modifier = modifier
         .fillMaxWidth()
         .height(135.dp)
         .border(Dp.Hairline, Color.Black)
         .background(Color.White)
-        .clickable { onClick() }) {
+        .clickable { onClick() }
+        .anchoredDraggable(state, true,Orientation.Vertical)) {
         Spacer(Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
 
@@ -99,7 +137,7 @@ fun CurrentSongBar(
             }
             Spacer(Modifier.width(30.dp))
             IconButton(
-                modifier = Modifier.size(30.dp), onClick = onPlayPause
+                modifier = Modifier.size(30.dp), onClick = onClose
             ) {
                 Icon(
                     painter = painterResource(R.drawable.exit_icon), contentDescription = null

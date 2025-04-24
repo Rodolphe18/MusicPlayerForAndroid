@@ -2,7 +2,15 @@ package com.example.contentproviderformusic.ui.composable
 
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
+import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -63,10 +72,16 @@ fun SongScreen(
     onPlayPause: () -> Unit,
     sliderValue: Float,
     onSliderValueChanged: (Float) -> Unit,
-    onNavigationClick: () -> Unit
+    onNavigationClick: () -> Unit,
+    onVerticalDrag: () -> Unit
 ) {
     Scaffold(topBar = {
-        SongAppBar(song.title, Icons.AutoMirrored.Filled.ArrowBack, Icons.Filled.Favorite, onNavigationClick = onNavigationClick)
+        SongAppBar(
+            song.title,
+            Icons.AutoMirrored.Filled.ArrowBack,
+            Icons.Filled.Favorite,
+            onNavigationClick = onNavigationClick
+        )
     }) {
         SongBody(
             song,
@@ -75,13 +90,19 @@ fun SongScreen(
             onNext,
             onPlayPause,
             sliderValue,
-            onSliderValueChanged
+            onSliderValueChanged,
+            onVerticalDrag
         )
     }
 }
 
+enum class DragAnchors {
+    Start,
+    End,
+}
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SongBody(
     song: Song,
@@ -90,10 +111,41 @@ fun SongBody(
     onNext: () -> Unit,
     onPlayPause: () -> Unit,
     sliderValue: Float,
-    onSliderValueChanged: (Float) -> Unit
+    onSliderValueChanged: (Float) -> Unit,
+    onVerticalDrag: () -> Unit
 ) {
+    val density = LocalDensity.current
+    val state = remember {
+        AnchoredDraggableState(
+            // 2
+            initialValue = DragAnchors.Start,
+            // 3
+            positionalThreshold = { distance: Float -> distance * 0.5f },
+            // 4
+            velocityThreshold = { with(density) { 100.dp.toPx() } },
+            // 5
+            snapAnimationSpec = tween(),
+            decayAnimationSpec = exponentialDecay(),
+            confirmValueChange = {
+                onVerticalDrag()
+                true
+            }
+        ).apply {
+            // 6
+            updateAnchors(
+                // 7
+                DraggableAnchors {
+                    DragAnchors.Start at 0f
+                    DragAnchors.End at 400f
+                }
+            )
+        }
+    }
     Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 12.dp)
+            .anchoredDraggable(state = state, orientation = Orientation.Vertical),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -175,7 +227,7 @@ fun SongBody(
 }
 
 @Composable
-fun AlbumImage(modifier: Modifier=Modifier, data: String, clipSize: Dp=0.dp) {
+fun AlbumImage(modifier: Modifier = Modifier, data: String, clipSize: Dp = 0.dp) {
     Box(modifier = Modifier.clip(RoundedCornerShape(clipSize))) {
         val context = LocalContext.current
         val imgArt = getImgArt(data)
