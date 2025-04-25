@@ -76,6 +76,8 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.core.splashscreen)
 
+    implementation("androidx.media3:media3-exoplayer:1.5.1")
+
     ksp(libs.hilt.compiler)
 
 }

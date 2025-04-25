@@ -8,9 +8,7 @@ import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -30,11 +28,11 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.example.contentproviderformusic.R
+import com.example.contentproviderformusic.repository.UserDataRepository
+import com.example.contentproviderformusic.service.MainService
 import com.example.contentproviderformusic.ui.composable.CurrentSongBar
 import com.example.contentproviderformusic.ui.composable.MainScreen
 import com.example.contentproviderformusic.ui.composable.SongScreen
-import com.example.contentproviderformusic.repository.UserDataRepository
-import com.example.contentproviderformusic.service.MainService
 import com.example.contentproviderformusic.ui.theme.ContentProviderForMusicTheme
 import com.example.contentproviderformusic.utils.MediaManager
 import com.example.contentproviderformusic.utils.PermissionManager
