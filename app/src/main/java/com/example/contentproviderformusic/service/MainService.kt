@@ -8,25 +8,22 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.media.MediaPlayer
-import android.media.MediaPlayer.OnCompletionListener
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import com.example.contentproviderformusic.ui.MainActivity
 import com.example.contentproviderformusic.R
-import com.example.contentproviderformusic.ui.ScreenStatus
-import com.example.contentproviderformusic.repository.UserDataRepository
-import com.example.contentproviderformusic.utils.getImgArt
 import com.example.contentproviderformusic.model.Song
+import com.example.contentproviderformusic.ui.MainActivity
+import com.example.contentproviderformusic.ui.ScreenStatus
+import com.example.contentproviderformusic.utils.MediaManager
+import com.example.contentproviderformusic.utils.getImgArt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -39,7 +36,7 @@ import kotlin.system.exitProcess
 
 class MainService : Service(), AudioManager.OnAudioFocusChangeListener, Player.Listener {
 
-    lateinit var player:Player
+    lateinit var player: Player
 
     private lateinit var mediaSession: MediaSessionCompat
 
@@ -49,9 +46,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, Player.L
 
     val isPlaying = MutableStateFlow(false)
 
-    val currentSong: MutableStateFlow<Song?> = MutableStateFlow(null)
-
-    val indexSong = MutableStateFlow(AtomicInteger(-1))
+    val currentIndex = MutableStateFlow(AtomicInteger(0))
 
     val currentDuration: MutableStateFlow<Float?> = MutableStateFlow(0f)
 
@@ -62,9 +57,12 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, Player.L
     val screenStatus = MutableStateFlow(ScreenStatus.MAIN_SCREEN)
 
     inner class MyBinder : Binder() {
-        fun currentService(): MainService { return this@MainService }
+        fun currentService(): MainService {
+            return this@MainService
+        }
+
         fun isPlaying() = this@MainService.isPlaying
-        fun getCurrentSong() = this@MainService.currentSong
+        fun getCurrentIndex() = this@MainService.currentIndex
         fun currentDuration() = this@MainService.currentDuration
         fun getScreenStatus() = this@MainService.screenStatus
     }
@@ -72,63 +70,16 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, Player.L
     override fun onBind(intent: Intent?): IBinder {
         mediaSession = MediaSessionCompat(baseContext, "My Music")
         player = ExoPlayer.Builder(this).build()
+        player.setMediaItems(MediaManager.getUserSongs(this).map { it.mediaItem }, 0, 0)
+        player.addListener(this)
+        player.prepare()
+        player.play()
+        updateSongDuration()
+        startCustomForegroundService(
+            MediaManager.getUserSongs(this)[player.currentMediaItemIndex],
+            R.drawable.pause_icon
+        )
         return myBinder
-    }
-
-   private fun updateSongDuration() {
-       job?.cancel()
-        job = scope.launch {
-            while (true) {
-                currentDuration.update { player.currentPosition.toFloat() }
-                delay(1000)
-            }
-        }
-    }
-
-    override fun onPlaybackStateChanged(playbackState: Int) {
-        super.onPlaybackStateChanged(playbackState)
-        if (player.playbackState == Player.STATE_ENDED) {
-            job?.cancel()
-            Log.d("debug_on_completion", "completion")
-            currentSong.value = null
-            indexSong.value.getAndIncrement()
-            if (indexSong.value.get() > -1 && indexSong.value.get() < UserDataRepository.songs.size) {
-                currentSong.update { UserDataRepository.songs[indexSong.value.get()] }
-                currentSong.value?.let { song ->
-                    playSelectedSong(song)
-                    startCustomForegroundService(song)
-                    updateSongDuration()
-                }
-            } else {
-                indexSong.update { AtomicInteger(0) }
-                currentSong.update { UserDataRepository.songs[indexSong.value.get()] }
-                currentSong.value?.let { song ->
-                    playSelectedSong(song)
-                    startCustomForegroundService(song)
-                    updateSongDuration()
-                }
-            }
-        }
-    }
-
-
-    fun stopSong() {
-        job?.cancel()
-        currentSong.value = null
-        player.stop()
-
-    }
-
-    fun onSeekBarValueChanged(value:Float) {
-        job?.cancel()
-        currentDuration.update { value }
-        player.seekTo(value.toLong())
-        job = scope.launch {
-            while (true) {
-                currentDuration.update { player.currentPosition.toFloat() }
-                delay(1000)
-            }
-        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -141,93 +92,91 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, Player.L
         return START_STICKY
     }
 
-    fun playSelectedSong(song: Song) {
+    private fun updateSongDuration() {
         job?.cancel()
+        job = scope.launch {
+            while (true) {
+                currentDuration.update { player.currentPosition.toFloat() }
+                delay(1000)
+            }
+        }
+    }
+
+    fun onSeekBarValueChanged(value: Float) {
+        job?.cancel()
+        currentDuration.update { value }
+        player.seekTo(value.toLong())
+
+        job = scope.launch {
+            while (true) {
+                currentDuration.update { player.currentPosition.toFloat() }
+                delay(1000)
+            }
+        }
+    }
+
+
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        super.onMediaItemTransition(mediaItem, reason)
+        currentIndex.update { AtomicInteger(player.currentMediaItemIndex) }
+        startCustomForegroundService(MediaManager.getUserSongs(this)[player.currentMediaItemIndex])
+        updateSongDuration()
+    }
+
+    fun playSelectedSong(index:Int) {
         isPlaying.update { true }
-        player.setMediaItem(MediaItem.fromUri(song.uri))
+        player.seekTo(index, 0)
         player.prepare()
         player.play()
         updateSongDuration()
-        player.addListener(this)
-        currentSong.value = song
-        startCustomForegroundService(currentSong.value!!, R.drawable.pause_icon)
+        startCustomForegroundService(
+            MediaManager.getUserSongs(this)[index],
+            R.drawable.pause_icon
+        )
     }
 
     fun playMusic() {
-        job?.cancel()
         isPlaying.update { true }
         player.prepare()
         player.play()
         updateSongDuration()
-        startCustomForegroundService(currentSong.value!!, R.drawable.pause_icon)
+        startCustomForegroundService(
+            MediaManager.getUserSongs(this)[player.currentMediaItemIndex],
+            R.drawable.pause_icon
+        )
     }
 
     fun pauseMusic() {
-        job?.cancel()
         isPlaying.update { false }
         player.prepare()
         player.pause()
         updateSongDuration()
-        startCustomForegroundService(currentSong.value!!, R.drawable.play_icon)
+        startCustomForegroundService(
+            MediaManager.getUserSongs(this)[player.currentMediaItemIndex],
+            R.drawable.play_icon
+        )
+    }
+
+    fun stopSong() {
+        job?.cancel()
+        player.stop()
     }
 
     fun prevSong() {
-        job?.cancel()
-        if (UserDataRepository.songs.size > 1) {
-            currentSong.value = null
-            indexSong.value.getAndDecrement()
-            if (indexSong.value.get() > -1 && indexSong.value.get() < UserDataRepository.songs.size - 1) {
-                currentSong.update { UserDataRepository.songs[indexSong.value.get()] }
-                currentSong.value?.let { song ->
-                    player.setMediaItem(MediaItem.fromUri(song.uri))
-                    player.prepare()
-                    player.play()
-                    startCustomForegroundService(song)
-                    updateSongDuration()
-                }
-            } else {
-                indexSong.update { AtomicInteger(UserDataRepository.songs.size - 1) }
-                currentSong.update { UserDataRepository.songs[indexSong.value.get()] }
-                currentSong.value?.let { song ->
-                    player.setMediaItem(MediaItem.fromUri(song.uri))
-                    player.prepare()
-                    player.play()
-                    startCustomForegroundService(song)
-                    updateSongDuration()
-                }
-            }
-        }
+        player.seekToPrevious()
+        currentIndex.update { AtomicInteger(player.currentMediaItemIndex) }
+        updateSongDuration()
+        startCustomForegroundService(MediaManager.getUserSongs(this)[player.currentMediaItemIndex])
     }
 
     fun nextSong() {
-        job?.cancel()
-        if (UserDataRepository.songs.size > 1) {
-            currentSong.value = null
-            indexSong.value.getAndIncrement()
-            if (indexSong.value.get() > -1 && indexSong.value.get() < UserDataRepository.songs.size) {
-                currentSong.update { UserDataRepository.songs[indexSong.value.get()] }
-                currentSong.value?.let { song ->
-                    player.setMediaItem(MediaItem.fromUri(song.uri))
-                    player.prepare()
-                    player.play()
-                    startCustomForegroundService(song)
-                    updateSongDuration()
-                }
-            } else {
-                indexSong.update { AtomicInteger(0) }
-                currentSong.update { UserDataRepository.songs[indexSong.value.get()] }
-                currentSong.value?.let { song ->
-                    player.setMediaItem(MediaItem.fromUri(song.uri))
-                    player.prepare()
-                    player.play()
-                    startCustomForegroundService(song)
-                    updateSongDuration()
-                }
-            }
-        }
+        player.seekToNext()
+        currentIndex.update { AtomicInteger(player.currentMediaItemIndex) }
+        updateSongDuration()
+        startCustomForegroundService(MediaManager.getUserSongs(this)[player.currentMediaItemIndex])
     }
 
-    fun startCustomForegroundService(song: Song, playPauseBtn: Int = R.drawable.pause_icon) {
+    private fun startCustomForegroundService(song: Song, playPauseBtn: Int = R.drawable.pause_icon) {
 
         val intent = Intent(this, MainActivity::class.java).apply {
             putExtra("open_song", "")
@@ -282,13 +231,11 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, Player.L
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            player.duration.let {
-                mediaSession.setMetadata(
-                    MediaMetadataCompat.Builder().putLong(
-                        MediaMetadataCompat.METADATA_KEY_DURATION, it
-                    ).build()
-                )
-            }
+            mediaSession.setMetadata(
+                MediaMetadataCompat.Builder().putLong(
+                    MediaMetadataCompat.METADATA_KEY_DURATION, player.duration
+                ).build()
+            )
             mediaSession.setPlaybackState(getPlayBackState())
             mediaSession.setCallback(object : MediaSessionCompat.Callback() {
 
@@ -301,7 +248,16 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, Player.L
                 //called when seekbar is changed
                 override fun onSeekTo(pos: Long) {
                     super.onSeekTo(pos)
+                    job?.cancel()
+                    currentDuration.update { pos.toFloat() }
                     player.seekTo(pos)
+
+                    job = scope.launch {
+                        while (true) {
+                            currentDuration.update { pos.toFloat() }
+                            delay(1000)
+                        }
+                    }
                     mediaSession.setPlaybackState(getPlayBackState())
                 }
             })

@@ -31,6 +31,7 @@ android {
         }
     }
     compileOptions {
+
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -76,8 +77,10 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.core.splashscreen)
 
-    implementation("androidx.media3:media3-exoplayer:1.5.1")
+    implementation(libs.androidx.media3.exoplayer)
 
     ksp(libs.hilt.compiler)
+
+    implementation("androidx.media3:media3-session:1.6.1")
 
 }
