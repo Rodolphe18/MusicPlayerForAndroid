@@ -14,6 +14,7 @@ import android.os.IBinder
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -54,6 +55,8 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, Player.L
 
     private var job: Job? = null
 
+    private var durationJob: Job? = null
+
     val screenStatus = MutableStateFlow(ScreenStatus.MAIN_SCREEN)
 
     inner class MyBinder : Binder() {
@@ -74,11 +77,16 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, Player.L
         player.addListener(this)
         player.prepare()
         player.play()
+        isPlaying.update { true }
         updateSongDuration()
-        startCustomForegroundService(
-            MediaManager.getUserSongs(this)[player.currentMediaItemIndex],
-            R.drawable.pause_icon
-        )
+        durationJob?.cancel()
+        durationJob = scope.launch {
+            delay(100)
+            startCustomForegroundService(
+                MediaManager.getUserSongs(this@MainService)[player.currentMediaItemIndex],
+                R.drawable.pause_icon
+            )
+        }
         return myBinder
     }
 
@@ -123,7 +131,7 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, Player.L
         updateSongDuration()
     }
 
-    fun playSelectedSong(index:Int) {
+    fun playSelectedSong(index: Int) {
         isPlaying.update { true }
         player.seekTo(index, 0)
         player.prepare()
@@ -176,7 +184,10 @@ class MainService : Service(), AudioManager.OnAudioFocusChangeListener, Player.L
         startCustomForegroundService(MediaManager.getUserSongs(this)[player.currentMediaItemIndex])
     }
 
-    private fun startCustomForegroundService(song: Song, playPauseBtn: Int = R.drawable.pause_icon) {
+    private fun startCustomForegroundService(
+        song: Song,
+        playPauseBtn: Int = R.drawable.pause_icon
+    ) {
 
         val intent = Intent(this, MainActivity::class.java).apply {
             putExtra("open_song", "")
