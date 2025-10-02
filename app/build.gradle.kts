@@ -70,7 +70,7 @@ dependencies {
     implementation(libs.androidx.media)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
-
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.android)
     implementation(libs.hilt.core)
     implementation(libs.hilt.plugin)
@@ -78,9 +78,11 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
 
     implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.datasource.okhttp)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.session)
+    implementation(libs.kotlinx.coroutines.guava)
 
-    ksp(libs.hilt.compiler)
-
-    implementation("androidx.media3:media3-session:1.6.1")
+  //  implementation("androidx.media3:media3-session:1.6.1")
 
 }
