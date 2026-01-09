@@ -10,5 +10,5 @@ data class Song(
     val album: String,
     val uri: Uri,
     val duration: Long = 0,
-    val mediaItem:MediaItem=MediaItem.fromUri(uri),
+    val mediaItem:MediaItem = MediaItem.fromUri(uri)
 )

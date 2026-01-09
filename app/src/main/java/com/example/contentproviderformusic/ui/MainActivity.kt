@@ -14,38 +14,40 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startForegroundService
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.util.UnstableApi
 import com.example.contentproviderformusic.repository.UserDataRepository
-import com.example.contentproviderformusic.service.MainService
+import com.example.contentproviderformusic.service.MusicService
 import com.example.contentproviderformusic.ui.composable.CurrentSongBar
 import com.example.contentproviderformusic.ui.composable.MainScreen
 import com.example.contentproviderformusic.ui.composable.SongScreen
+import com.example.contentproviderformusic.ui.composable.rememberMediaController
 import com.example.contentproviderformusic.ui.theme.ContentProviderForMusicTheme
 import com.example.contentproviderformusic.utils.MediaManager
 import com.example.contentproviderformusic.utils.PermissionManager
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicInteger
+import dagger.hilt.android.AndroidEntryPoint
 
-class MainActivity : ComponentActivity(), ServiceConnection {
-
-    private var musicService: MainService? = null
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
 
     private val mainViewModel by viewModels<MainViewModel>()
 
 
+    @OptIn(UnstableApi::class)
     @SuppressLint("StateFlowValueCalledInComposition")
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +55,9 @@ class MainActivity : ComponentActivity(), ServiceConnection {
         requestPermissions()
         installSplashScreen().setKeepOnScreenCondition { mainViewModel.isLoading.value }
         enableEdgeToEdge()
+        startService(
+            Intent(this, MusicService::class.java)
+        )
         setContent {
             ContentProviderForMusicTheme {
                 val permissionGranted by mainViewModel.permissionGranted.collectAsStateWithLifecycle()
@@ -60,14 +65,23 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                 val currentDuration by mainViewModel.currentDuration.collectAsStateWithLifecycle()
                 val screenStatus by mainViewModel.screenStatus.collectAsStateWithLifecycle()
                 val currentIndex by mainViewModel.currentIndex.collectAsStateWithLifecycle()
-                LaunchedEffect(musicService == null) {
-                    if (musicService == null) {
-                        initService()
-                    }
+                val controller = rememberMediaController(this)
+                LaunchedEffect(controller) {
+                    controller?.let { mainViewModel.attachController(it) }
+                }
+                DisposableEffect(controller) {
+                    onDispose { mainViewModel.detachController() }
                 }
                 LaunchedEffect(permissionGranted) {
                     if (permissionGranted) {
                         UserDataRepository.updateSongs(MediaManager.getUserSongs(this@MainActivity))
+                    }
+                }
+                LaunchedEffect(permissionGranted, controller, UserDataRepository.songs.size) {
+                    if (permissionGranted && controller != null && UserDataRepository.songs.isNotEmpty()) {
+                        if (controller.mediaItemCount == 0) {
+                            mainViewModel.playSelectedSong(0)
+                        }
                     }
                 }
                 if (permissionGranted) {
@@ -80,39 +94,29 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                                         .padding(bottom = 62.dp)
                                 ) {
                                     MainScreen(UserDataRepository.songs) { index, song ->
-                                        musicService?.screenStatus?.value = ScreenStatus.SONG_SCREEN
-                                        musicService?.playSelectedSong(index)
-                                        musicService?.currentIndex?.update { AtomicInteger(index) }
-                                    }
+                                        mainViewModel.playSelectedSong(index)  }
                                     if(UserDataRepository.songs.isNotEmpty()) {
                                         CurrentSongBar(
                                             Modifier.align(Alignment.BottomCenter),
-                                            UserDataRepository.songs[currentIndex.get()],
+                                            UserDataRepository.songs[currentIndex],
                                             isPlaying, {
-                                                musicService?.prevSong()
+                                                mainViewModel.prevSong()
                                             },
                                             {
-                                                musicService?.nextSong()
+                                                mainViewModel.nextSong()
                                             }, {
-                                                if (isPlaying) musicService?.pauseMusic() else musicService?.playMusic()
-                                            }, currentDuration!!,
+                                                mainViewModel.playPause()
+                                            }, currentDuration,
                                             {
-                                                musicService?.onSeekBarValueChanged(
-                                                    it
-                                                )
+                                                mainViewModel.onSeekBarValueChanged(it)
                                             }, {
-                                                musicService?.screenStatus?.value =
-                                                    ScreenStatus.SONG_SCREEN
+                                                mainViewModel.stopSong()
                                             }, {
-                                                musicService?.stopSong()
-                                            }, {
-                                                musicService?.screenStatus?.value =
-                                                    ScreenStatus.SONG_SCREEN
+                                                mainViewModel.screenStatus.value = ScreenStatus.SONG_SCREEN
                                             }
                                         )
                                     }
                                 }
-                                LaunchedEffect(Unit) { if (isPlaying) musicService?.playMusic() else musicService?.pauseMusic() }
                             } else {
                                 Box(
                                     modifier = Modifier
@@ -120,33 +124,27 @@ class MainActivity : ComponentActivity(), ServiceConnection {
                                         .padding(bottom = 42.dp)
                                 ) {
                                     MainScreen(UserDataRepository.songs) { index, song ->
-                                        musicService?.screenStatus?.value = ScreenStatus.SONG_SCREEN
-                                        musicService?.playSelectedSong(index)
-                                        musicService?.currentIndex?.update { AtomicInteger(index) }
-
+                                        mainViewModel.playSelectedSong(index)
                                     }
                                    if(UserDataRepository.songs.isNotEmpty()) {
                                        CurrentSongBar(
                                            Modifier.align(Alignment.BottomCenter),
-                                           UserDataRepository.songs[currentIndex.get()],
+                                           UserDataRepository.songs[currentIndex],
                                            isPlaying,
                                            {
-                                               musicService?.prevSong()
+                                               mainViewModel.prevSong()
                                            },
                                            {
-                                               musicService?.nextSong()
+                                               mainViewModel.nextSong()
                                            }, {
-                                               if (isPlaying) musicService?.pauseMusic() else musicService?.playMusic()
-                                           }, currentDuration!!,
+                                               mainViewModel.playPause()
+                                           }, currentDuration,
                                            {
-                                               musicService?.onSeekBarValueChanged(
+                                               mainViewModel.onSeekBarValueChanged(
                                                    it
                                                )
-                                           }, {
-                                               musicService?.screenStatus?.value =
-                                                   ScreenStatus.SONG_SCREEN
-                                           }, { musicService?.stopSong() }, {
-                                               musicService?.screenStatus?.value =
+                                           }, { mainViewModel.stopSong() }, {
+                                               mainViewModel.screenStatus.value =
                                                    ScreenStatus.SONG_SCREEN
                                            })
                                    }
@@ -156,42 +154,42 @@ class MainActivity : ComponentActivity(), ServiceConnection {
 
                         ScreenStatus.SONG_SCREEN -> {
                             if (intent.getStringExtra("open_song") != null) {
-                                UserDataRepository.songs[currentIndex.get()].let { song ->
+                                UserDataRepository.songs[currentIndex].let { song ->
                                     SongScreen(song = song,
                                         isPlaying = isPlaying,
-                                        onPrevious = { musicService?.prevSong() },
-                                        onNext = { musicService?.nextSong() },
-                                        onPlayPause = { if (isPlaying) musicService?.pauseMusic() else musicService?.playMusic() },
-                                        sliderValue = currentDuration!!,
+                                        onPrevious = { mainViewModel.prevSong() },
+                                        onNext = { mainViewModel.nextSong() },
+                                        onPlayPause = { mainViewModel.playPause() },
+                                        sliderValue = currentDuration,
                                         onSliderValueChanged = {
-                                            musicService?.onSeekBarValueChanged(
+                                            mainViewModel.onSeekBarValueChanged(
                                                 it
                                             )
                                         },
                                         onNavigationClick = {
-                                            musicService?.screenStatus?.value =
+                                            mainViewModel.screenStatus.value =
                                                 ScreenStatus.MAIN_SCREEN
-                                        }, onVerticalDrag = {musicService?.screenStatus?.value =
+                                        }, onVerticalDrag = {mainViewModel.screenStatus.value =
                                             ScreenStatus.MAIN_SCREEN})
-                                    LaunchedEffect(Unit) { if (isPlaying) musicService?.playMusic() else musicService?.pauseMusic() }
+                                    LaunchedEffect(Unit) { mainViewModel.playPause() }
                                 }
                             } else {
-                                SongScreen(song = UserDataRepository.songs[currentIndex.get()],
+                                SongScreen(song = UserDataRepository.songs[currentIndex],
                                     isPlaying = isPlaying,
-                                    onPrevious = { musicService?.prevSong() },
-                                    onNext = { musicService?.nextSong() },
-                                    onPlayPause = { if (isPlaying) musicService?.pauseMusic() else musicService?.playMusic() },
-                                    sliderValue = currentDuration!!,
+                                    onPrevious = { mainViewModel.prevSong() },
+                                    onNext = { mainViewModel.nextSong() },
+                                    onPlayPause = { mainViewModel.playPause() },
+                                    sliderValue = currentDuration,
                                     onSliderValueChanged = {
-                                        musicService?.onSeekBarValueChanged(
+                                        mainViewModel.onSeekBarValueChanged(
                                             it
                                         )
                                     },
                                     onNavigationClick = {
-                                        musicService?.screenStatus?.value =
+                                        mainViewModel.screenStatus.value =
                                             ScreenStatus.MAIN_SCREEN
                                     }, onVerticalDrag = {
-                                        musicService?.screenStatus?.value =
+                                        mainViewModel.screenStatus.value =
                                             ScreenStatus.MAIN_SCREEN
                                     })
                             }
@@ -216,49 +214,8 @@ class MainActivity : ComponentActivity(), ServiceConnection {
         PermissionManager.requestRuntimePermission(multiplePermissionsContract)
     }
 
-    private fun initService() {
-        val intent = Intent(this, MainService::class.java)
-        startService(intent)
-        bindService(intent, this, BIND_AUTO_CREATE)
-        mainViewModel.isLoading.value = false
-    }
 
-    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-        if (musicService == null) {
-            musicService = (service as MainService.MyBinder).currentService()
-            musicService?.mAudioManager = getSystemService(AUDIO_SERVICE) as AudioManager
-            musicService?.mAudioManager?.requestAudioFocus(
-                musicService,
-                AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN
-            )
-        }
-        lifecycleScope.launch {
-            (service as MainService.MyBinder).isPlaying().collectLatest {
-                mainViewModel.isPlaying.value = it
-            }
-        }
-        lifecycleScope.launch {
-            (service as MainService.MyBinder).currentDuration().collectLatest {
-                mainViewModel.currentDuration.value = it
-            }
-        }
 
-        lifecycleScope.launch {
-            (service as MainService.MyBinder).getScreenStatus().collectLatest {
-                mainViewModel.screenStatus.value = it
-            }
-        }
-        lifecycleScope.launch {
-            (service as MainService.MyBinder).getCurrentIndex().collectLatest {
-                mainViewModel.currentIndex.value = it
-            }
-        }
-    }
-
-    override fun onServiceDisconnected(name: ComponentName?) {
-        musicService = null
-    }
 
 
 }
