@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.contentproviderformusic"
+    namespace = "com.francotte.contentproviderformusic"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.contentproviderformusic"
+        applicationId = "com.francotte.contentproviderformusic"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
