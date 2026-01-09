@@ -56,7 +56,6 @@ fun CurrentSongBar(
     onPlayPause: () -> Unit,
     sliderValue: Float,
     onSliderValueChanged: (Float) -> Unit,
-    onClick:()->Unit,
     onClose:()->Unit,
     onVerticalDrag: () -> Unit
 ) {
@@ -64,13 +63,9 @@ fun CurrentSongBar(
     val density = LocalDensity.current
     val state = remember {
         AnchoredDraggableState(
-            // 2
             initialValue = DragAnchors.Start,
-            // 3
             positionalThreshold = { distance: Float -> distance * 0.5f },
-            // 4
             velocityThreshold = { with(density) { 100.dp.toPx() } },
-            // 5
             snapAnimationSpec = tween(),
             decayAnimationSpec = exponentialDecay(),
             confirmValueChange = {
@@ -78,9 +73,7 @@ fun CurrentSongBar(
                 true
             }
         ).apply {
-            // 6
             updateAnchors(
-                // 7
                 DraggableAnchors {
                     DragAnchors.Start at 0f
                     DragAnchors.End at 400f
@@ -92,11 +85,10 @@ fun CurrentSongBar(
         .fillMaxWidth()
         .height(130.dp + state.requireOffset().roundToInt().dp)
         .border(Dp.Hairline, Color.Black)
-        .background(Color.White)
-        .clickable { onClick() }
-        .anchoredDraggable(state, true,Orientation.Vertical)) {
+        .background(Color.White)) {
+
         Spacer(Modifier.height(10.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp).anchoredDraggable(state, true,Orientation.Vertical)) {
 
             Text(
                 modifier = Modifier.basicMarquee(),

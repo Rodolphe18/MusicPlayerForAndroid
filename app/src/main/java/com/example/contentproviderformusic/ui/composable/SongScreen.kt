@@ -6,7 +6,6 @@ import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
@@ -27,7 +26,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,25 +33,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarColors
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.contentproviderformusic.R
 import com.example.contentproviderformusic.model.Song
@@ -250,51 +243,3 @@ fun AlbumImage(modifier: Modifier = Modifier, data: String, clipSize: Dp = 0.dp)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SongAppBar(
-    text: String,
-    leftIcon: ImageVector,
-    rightIcon: ImageVector,
-    actionIconContentDescription: String? = null,
-    modifier: Modifier = Modifier,
-    colors: TopAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-        containerColor = Color(
-            0xFFD2B48C
-        )
-    ),
-    onActionClick: () -> Unit = {},
-    onNavigationClick: () -> Unit = {}
-) {
-    CenterAlignedTopAppBar(
-        title = {
-            Text(
-                text = text,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF8B4513),
-                maxLines = 1
-            )
-        },
-        actions = {
-            IconButton(onClick = onActionClick) {
-                Icon(
-                    imageVector = rightIcon,
-                    contentDescription = actionIconContentDescription,
-                    tint = Color(0xFF8B4513)
-                )
-            }
-        },
-        navigationIcon = {
-            IconButton(onClick = onNavigationClick) {
-                Icon(
-                    imageVector = leftIcon,
-                    contentDescription = null,
-                    tint = Color(0xFF8B4513)
-                )
-            }
-        },
-        colors = colors,
-        modifier = modifier,
-    )
-}
