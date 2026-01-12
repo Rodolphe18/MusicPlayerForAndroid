@@ -24,22 +24,13 @@ import com.francotte.contentproviderformusic.utils.formatDuration
 
 @Composable
 fun SongItem(song:Song, isCurrent:Boolean, onClick:()->Unit) {
-    val bg = if (isCurrent) {
-        Brush.linearGradient(
-            listOf(
-                Color.Transparent,
-                Aurora.Night.copy(0.02f),
-                Aurora.Purple.copy(0.12f),
-            )
-        )
-    } else null
     Row(
         modifier = Modifier
-            .background(bg ?: SolidColor(Color.White))
+            .background(if (isCurrent) Aurora.Teal.copy(0.15f) else Color.White)
             .padding(horizontal = 8.dp)
             .clickable { onClick() }, verticalAlignment = Alignment.CenterVertically
     ) {
-        AlbumImage(Modifier.size(50.dp), song.data, 8.dp)
+        AlbumImage(Modifier.size(50.dp), song.data, 16.dp)
         Column(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier

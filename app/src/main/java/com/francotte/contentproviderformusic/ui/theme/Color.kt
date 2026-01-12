@@ -17,6 +17,6 @@ object Aurora {
     val Teal = Color(0xFF2EC4B6)
     val Cyan = Color(0xFF4DD6FF)
 
-    val BarBrush = Brush.linearGradient(listOf(Night, Purple, Teal))
+    val BarBrush = Brush.linearGradient(listOf(Night, Purple,Purple,Purple,Teal))
     val AccentBrush = Brush.linearGradient(listOf(Purple, Teal))
 }

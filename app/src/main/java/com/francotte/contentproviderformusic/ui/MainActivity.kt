@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.Window
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,21 +13,24 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import com.francotte.contentproviderformusic.repository.UserDataRepository
 import com.francotte.contentproviderformusic.service.MusicService
-import com.francotte.contentproviderformusic.ui.composable.CurrentSongBar
 import com.francotte.contentproviderformusic.ui.composable.HomeScreen
 import com.francotte.contentproviderformusic.ui.composable.SongScreen
 import com.francotte.contentproviderformusic.ui.composable.rememberMediaController
@@ -49,9 +53,7 @@ class MainActivity : ComponentActivity() {
         requestPermissions()
         installSplashScreen().setKeepOnScreenCondition { mainViewModel.isLoading.value }
         enableEdgeToEdge()
-        startService(
-            Intent(this, MusicService::class.java)
-        )
+        startService(Intent(this, MusicService::class.java))
         setContent {
             ContentProviderForMusicTheme {
                 val permissionGranted by mainViewModel.permissionGranted.collectAsStateWithLifecycle()
@@ -60,6 +62,7 @@ class MainActivity : ComponentActivity() {
                 val screenStatus by mainViewModel.screenStatus.collectAsStateWithLifecycle()
                 val currentIndex by mainViewModel.currentIndex.collectAsStateWithLifecycle()
                 val controller = rememberMediaController(this)
+                HideNavigationBar(window)
                 LaunchedEffect(controller) {
                     controller?.let { mainViewModel.attachController(it) }
                 }
@@ -81,94 +84,11 @@ class MainActivity : ComponentActivity() {
                 if (permissionGranted) {
                     when (screenStatus) {
                         ScreenStatus.MAIN_SCREEN -> {
-                            if (intent.getStringExtra("open_song") != null) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(bottom = 62.dp)
-                                ) {
-                                    HomeScreen(UserDataRepository.songs, currentIndex) { index, song ->
-                                        mainViewModel.playSelectedSong(index)  }
-                                    if(UserDataRepository.songs.isNotEmpty()) {
-                                        CurrentSongBar(
-                                            Modifier.align(Alignment.BottomCenter),
-                                            UserDataRepository.songs[currentIndex],
-                                            isPlaying, {
-                                                mainViewModel.prevSong()
-                                            },
-                                            {
-                                                mainViewModel.nextSong()
-                                            }, {
-                                                mainViewModel.playPause()
-                                            }, currentDuration,
-                                            {
-                                                mainViewModel.onSeekBarValueChanged(it)
-                                            }, {
-                                                mainViewModel.stopSong()
-                                            }, {
-                                                mainViewModel.screenStatus.value = ScreenStatus.SONG_SCREEN
-                                            }
-                                        )
-                                    }
-                                }
-                            } else {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(bottom = 42.dp)
-                                ) {
-                                    HomeScreen(UserDataRepository.songs,currentIndex) { index, song ->
-                                        mainViewModel.playSelectedSong(index)
-                                    }
-                                   if(UserDataRepository.songs.isNotEmpty()) {
-                                       CurrentSongBar(
-                                           Modifier.align(Alignment.BottomCenter),
-                                           UserDataRepository.songs[currentIndex],
-                                           isPlaying,
-                                           {
-                                               mainViewModel.prevSong()
-                                           },
-                                           {
-                                               mainViewModel.nextSong()
-                                           }, {
-                                               mainViewModel.playPause()
-                                           }, currentDuration,
-                                           {
-                                               mainViewModel.onSeekBarValueChanged(
-                                                   it
-                                               )
-                                           }, { mainViewModel.stopSong() }, {
-                                               mainViewModel.screenStatus.value =
-                                                   ScreenStatus.SONG_SCREEN
-                                           })
-                                   }
-                                }
-                            }
-                        }
-
-                        ScreenStatus.SONG_SCREEN -> {
-                            if (intent.getStringExtra("open_song") != null) {
-                                UserDataRepository.songs[currentIndex].let { song ->
-                                    SongScreen(song = song,
-                                        isPlaying = isPlaying,
-                                        onPrevious = { mainViewModel.prevSong() },
-                                        onNext = { mainViewModel.nextSong() },
-                                        onPlayPause = { mainViewModel.playPause() },
-                                        sliderValue = currentDuration,
-                                        onSliderValueChanged = {
-                                            mainViewModel.onSeekBarValueChanged(
-                                                it
-                                            )
-                                        },
-                                        onNavigationClick = {
-                                            mainViewModel.screenStatus.value =
-                                                ScreenStatus.MAIN_SCREEN
-                                        }, onVerticalDrag = {mainViewModel.screenStatus.value =
-                                            ScreenStatus.MAIN_SCREEN})
-                                    LaunchedEffect(Unit) { mainViewModel.playPause() }
-                                }
-                            } else {
-                                SongScreen(song = UserDataRepository.songs[currentIndex],
+                            if (UserDataRepository.songs.isNotEmpty()) {
+                                HomeScreen(
+                                    modifier = Modifier.fillMaxSize(),
+                                    songs = UserDataRepository.songs,
+                                    currentIndex = currentIndex,
                                     isPlaying = isPlaying,
                                     onPrevious = { mainViewModel.prevSong() },
                                     onNext = { mainViewModel.nextSong() },
@@ -179,14 +99,37 @@ class MainActivity : ComponentActivity() {
                                             it
                                         )
                                     },
-                                    onNavigationClick = {
+                                    onClose = { mainViewModel.stopSong() },
+                                    onVerticalDrag = {
                                         mainViewModel.screenStatus.value =
-                                            ScreenStatus.MAIN_SCREEN
-                                    }, onVerticalDrag = {
-                                        mainViewModel.screenStatus.value =
-                                            ScreenStatus.MAIN_SCREEN
+                                            ScreenStatus.SONG_SCREEN
+                                    },
+
+                                    onClick = { index, song ->
+                                        mainViewModel.playSelectedSong(index)
                                     })
                             }
+                        }
+
+                        ScreenStatus.SONG_SCREEN -> {
+                            UserDataRepository.songs[currentIndex].let { song ->
+                                SongScreen(
+                                    song = song,
+                                    isPlaying = isPlaying,
+                                    onPrevious = { mainViewModel.prevSong() },
+                                    onNext = { mainViewModel.nextSong() },
+                                    onPlayPause = { mainViewModel.playPause() },
+                                    sliderValue = currentDuration,
+                                    onSliderValueChanged = { mainViewModel.onSeekBarValueChanged(it) },
+                                    onNavigationClick = {
+                                        mainViewModel.screenStatus.value = ScreenStatus.MAIN_SCREEN
+                                    },
+                                    onVerticalDrag = {
+                                        mainViewModel.screenStatus.value = ScreenStatus.MAIN_SCREEN
+                                    })
+                                LaunchedEffect(Unit) { mainViewModel.playPause() }
+                            }
+
                         }
 
                     }
@@ -196,20 +139,47 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestPermissions() {
-        val multiplePermissionsContract = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionsStatusMap ->
-            if (!permissionsStatusMap.containsValue(false)) {
-                // all permissions are accepted
-                Toast.makeText(this, "all permissions are accepted", Toast.LENGTH_SHORT).show()
-                mainViewModel.updatePermissionStatus()
-            } else {
-                Toast.makeText(this, "all permissions are not accepted", Toast.LENGTH_SHORT).show()
+        val multiplePermissionsContract =
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionsStatusMap ->
+                if (!permissionsStatusMap.containsValue(false)) {
+                    // all permissions are accepted
+                    Toast.makeText(this, "all permissions are accepted", Toast.LENGTH_SHORT).show()
+                    mainViewModel.updatePermissionStatus()
+                } else {
+                    Toast.makeText(this, "all permissions are not accepted", Toast.LENGTH_SHORT)
+                        .show()
+                }
             }
-        }
         PermissionManager.requestRuntimePermission(multiplePermissionsContract)
     }
 
 }
 
 
+@Composable
+fun HideNavigationBar(window: Window) {
+    val view = LocalView.current
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
 
+    DisposableEffect(window, view, lifecycle) {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        val controller = WindowCompat.getInsetsController(window, view)
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                controller.hide(WindowInsetsCompat.Type.navigationBars())
+            }
+        }
+        lifecycle.addObserver(observer)
+
+        controller.hide(WindowInsetsCompat.Type.navigationBars())
+
+        onDispose {
+            lifecycle.removeObserver(observer)
+            controller.show(WindowInsetsCompat.Type.navigationBars())
+        }
+    }
+}
