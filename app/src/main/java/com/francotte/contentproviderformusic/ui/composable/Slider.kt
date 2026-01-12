@@ -23,12 +23,12 @@ import com.francotte.contentproviderformusic.utils.formatDuration
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CurrentSongBarSlider(song: Song, sliderValue: Float,
-                         onSliderValueChanged: (Float) -> Unit) {
+fun CustomSlider(song: Song, timeColor:Color, thumbColor: Color, trackColor:Color, sliderValue: Float,
+                 onSliderValueChanged: (Float) -> Unit) {
     val sliderColors = SliderDefaults.colors(
-        thumbColor = Color.White,
-        activeTrackColor = Color.White,
-        inactiveTrackColor = Color.White.copy(alpha = 0.35f),
+        thumbColor = thumbColor,
+        activeTrackColor = trackColor,
+        inactiveTrackColor = trackColor.copy(alpha = 0.5f),
         activeTickColor = Color.Transparent,
         inactiveTickColor = Color.Transparent
     )
@@ -38,7 +38,7 @@ fun CurrentSongBarSlider(song: Song, sliderValue: Float,
             modifier = Modifier.weight(0.15f),
             text = formatDuration(sliderValue),
             fontSize = 9.sp,
-            color = Color.White
+            color = timeColor
         )
         Slider(
             modifier = Modifier.weight(1.4f),
@@ -67,7 +67,7 @@ fun CurrentSongBarSlider(song: Song, sliderValue: Float,
             modifier = Modifier.weight(0.15f),
             text = formatDuration(song.duration),
             fontSize = 10.sp,
-            color = Color.White
+            color = timeColor
         )
         Spacer(Modifier.width(4.dp))
     }

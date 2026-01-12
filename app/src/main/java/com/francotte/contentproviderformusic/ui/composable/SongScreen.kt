@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
@@ -48,8 +49,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.francotte.contentproviderformusic.R
 import com.francotte.contentproviderformusic.model.Song
+import com.francotte.contentproviderformusic.ui.theme.Aurora
 import com.francotte.contentproviderformusic.utils.formatDuration
 import com.francotte.contentproviderformusic.utils.getImgArt
 
@@ -138,8 +141,9 @@ fun SongBody(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 12.dp)
-            .anchoredDraggable(state = state, orientation = Orientation.Vertical),
+            .background(Aurora.Cyan.copy(0.1f))
+            .padding(horizontal = 12.dp),
+        //    .anchoredDraggable(state = state, orientation = Orientation.Vertical),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -148,7 +152,8 @@ fun SongBody(
         Text(
             text = song.title,
             textAlign = TextAlign.Center,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            color = Aurora.Night
         )
         Spacer(Modifier.height(36.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -156,22 +161,22 @@ fun SongBody(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFD2B48C)),
+                    .background(Aurora.Purple.copy(0.9f)),
                 onClick = onPrevious
             ) {
-                Icon(painter = painterResource(R.drawable.previous_icon), contentDescription = null)
+                Icon(painter = painterResource(R.drawable.previous_icon), contentDescription = null, tint = Color.White)
             }
             Spacer(Modifier.width(24.dp))
             IconButton(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFD2B48C)), onClick = onPlayPause
+                    .background(Aurora.Purple.copy(0.9f)), onClick = onPlayPause
             ) {
                 Icon(
                     painter = if (isPlaying) painterResource(R.drawable.pause_icon) else painterResource(
                         R.drawable.play_icon
-                    ), contentDescription = null
+                    ), contentDescription = null, tint = Color.White
                 )
             }
             Spacer(Modifier.width(24.dp))
@@ -179,67 +184,33 @@ fun SongBody(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFD2B48C)), onClick = onNext
+                    .background(Aurora.Purple.copy(0.9f)), onClick = onNext
             ) {
-                Icon(painter = painterResource(R.drawable.next_icon), contentDescription = null)
+                Icon(painter = painterResource(R.drawable.next_icon), contentDescription = null, tint = Color.White)
             }
         }
         Spacer(Modifier.height(36.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(modifier = Modifier.weight(0.2f), text = formatDuration(sliderValue))
-            Slider(
-                modifier = Modifier.weight(1f),
-                value = sliderValue,
-                onValueChange = onSliderValueChanged,
-                valueRange = 0f..song.duration.toFloat(),
-                colors = SliderDefaults.colors(
-                    inactiveTrackColor = Color.Red,
-                    activeTrackColor = Color.Cyan
-                ),
-                thumb = {
-                    SliderDefaults.Thumb(colors = SliderDefaults.colors(),
-                        enabled = true,
-                        thumbSize = DpSize(15.dp, 15.dp),
-                        interactionSource = remember { MutableInteractionSource() }
-                    )
-                },
-                track = { sliderState ->
-                    SliderDefaults.Track(
-                        modifier = Modifier.height(6.dp),
-                        sliderState = sliderState,
-                        thumbTrackGapSize = 0.dp,
-                    )
-                })
-            Text(
-                modifier = Modifier
-                    .weight(0.2f)
-                    .padding(start = 4.dp),
-                text = formatDuration(song.duration)
-            )
-        }
+        CustomSlider(song, Aurora.Purple,Aurora.Purple, Aurora.Purple,sliderValue,onSliderValueChanged)
     }
 }
 
 @Composable
 fun AlbumImage(modifier: Modifier = Modifier, data: String, clipSize: Dp = 0.dp) {
-    val context = LocalContext.current
     val imgArt = getImgArt(data)
     val image = if (imgArt != null) {
         BitmapFactory.decodeByteArray(imgArt, 0, imgArt.size)
     } else {
-        BitmapFactory.decodeResource(
-            context.resources,
-            R.drawable.note1841098_640
-        )
+       null
     }
+    val imagePainter = rememberAsyncImagePainter(image)
     Box(
         modifier = Modifier.clip(RoundedCornerShape(clipSize))
     ) {
-        AsyncImage(
-            modifier = if (imgArt == null) modifier.background(Color.LightGray.copy(alpha = 0.3f)) else modifier,
-            model = image,
+        Image(
+            modifier = if (imgArt == null) modifier.background(Aurora.Teal) else modifier,
+            painter = if (image != null) imagePainter else painterResource(R.drawable.ic_person),
             contentDescription = null,
-            contentScale = ContentScale.FillHeight
+            contentScale = ContentScale.FillHeight,
         )
     }
 }

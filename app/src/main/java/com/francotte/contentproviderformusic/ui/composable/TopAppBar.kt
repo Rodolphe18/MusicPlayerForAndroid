@@ -32,7 +32,7 @@ fun SongAppBar(
     Box(
         Modifier
             .fillMaxWidth()
-            .background(Aurora.BarBrush)
+            .background(Aurora.Purple)
     ) {
     CenterAlignedTopAppBar(
         title = {
