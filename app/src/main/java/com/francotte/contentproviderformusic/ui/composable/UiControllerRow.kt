@@ -19,14 +19,13 @@ import androidx.compose.ui.unit.dp
 import com.francotte.contentproviderformusic.R
 
 @Composable
-fun UiControllerRow(isPlaying: Boolean,
+fun UiControllerRow(modifier: Modifier=Modifier,isPlaying: Boolean,
                     onPrevious: () -> Unit,
                     onNext: () -> Unit,
                     onPlayPause: () -> Unit,onClose:()->Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-        Spacer(Modifier.width(20.dp))
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
         IconButton(
-            modifier = Modifier.size(40.dp).clip(CircleShape).border(1.dp, Color.White,CircleShape),
+            modifier = Modifier.size(35.dp),
             onClick = onPrevious
         ) {
             Icon(
@@ -35,9 +34,9 @@ fun UiControllerRow(isPlaying: Boolean,
                 ), contentDescription = null,tint = Color.White
             )
         }
-        Spacer(Modifier.width(30.dp))
+        Spacer(Modifier.width(4.dp))
         IconButton(
-            modifier = Modifier.size(40.dp).clip(CircleShape).border(1.dp, Color.White,CircleShape), onClick = onPlayPause
+            modifier = Modifier.size(35.dp), onClick = onPlayPause
         ) {
             Icon(
                 painter = if (isPlaying) painterResource(R.drawable.pause_icon) else painterResource(
@@ -45,23 +44,15 @@ fun UiControllerRow(isPlaying: Boolean,
                 ), contentDescription = null, tint = Color.White
             )
         }
-        Spacer(Modifier.width(30.dp))
+        Spacer(Modifier.width(4.dp))
         IconButton(
-            modifier = Modifier.size(40.dp).clip(CircleShape).border(1.dp, Color.White,CircleShape),
+            modifier = Modifier.size(35.dp),
             onClick = onNext
         ) {
             Icon(
                 painter = painterResource(
                     R.drawable.next_icon
                 ), contentDescription = null,tint = Color.White
-            )
-        }
-        Spacer(Modifier.width(30.dp))
-        IconButton(
-            modifier = Modifier.size(40.dp).clip(CircleShape).border(1.dp, Color.White,CircleShape), onClick = onClose
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.exit_icon), contentDescription = null,tint = Color.White
             )
         }
     }
