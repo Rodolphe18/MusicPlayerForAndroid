@@ -68,8 +68,7 @@ fun SongScreen(
     onPlayPause: () -> Unit,
     sliderValue: Float,
     onSliderValueChanged: (Float) -> Unit,
-    onNavigationClick: () -> Unit,
-    onVerticalDrag: () -> Unit
+    onNavigationClick: () -> Unit
 ) {
     Scaffold(topBar = {
         SongAppBar(
@@ -87,8 +86,7 @@ fun SongScreen(
             onNext,
             onPlayPause,
             sliderValue,
-            onSliderValueChanged,
-            onVerticalDrag
+            onSliderValueChanged
         )
     }
 }
@@ -108,42 +106,13 @@ fun SongBody(
     onNext: () -> Unit,
     onPlayPause: () -> Unit,
     sliderValue: Float,
-    onSliderValueChanged: (Float) -> Unit,
-    onVerticalDrag: () -> Unit
+    onSliderValueChanged: (Float) -> Unit
 ) {
-    val density = LocalDensity.current
-    val state = remember {
-        AnchoredDraggableState(
-            // 2
-            initialValue = DragAnchors.Start,
-            // 3
-            positionalThreshold = { distance: Float -> distance * 0.5f },
-            // 4
-            velocityThreshold = { with(density) { 100.dp.toPx() } },
-            // 5
-            snapAnimationSpec = tween(),
-            decayAnimationSpec = exponentialDecay(),
-            confirmValueChange = {
-                onVerticalDrag()
-                true
-            }
-        ).apply {
-            // 6
-            updateAnchors(
-                // 7
-                DraggableAnchors {
-                    DragAnchors.Start at 0f
-                    DragAnchors.End at 400f
-                }
-            )
-        }
-    }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Aurora.Cyan.copy(0.1f))
-            .padding(horizontal = 12.dp),
-        //    .anchoredDraggable(state = state, orientation = Orientation.Vertical),
+            .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -153,25 +122,20 @@ fun SongBody(
             text = song.title,
             textAlign = TextAlign.Center,
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            color = Aurora.Night
+            color = Color.White
         )
         Spacer(Modifier.height(36.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .background(Aurora.Purple.copy(0.9f)),
+                modifier = Modifier.size(50.dp),
                 onClick = onPrevious
             ) {
                 Icon(painter = painterResource(R.drawable.previous_icon), contentDescription = null, tint = Color.White)
             }
             Spacer(Modifier.width(24.dp))
             IconButton(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape)
-                    .background(Aurora.Purple.copy(0.9f)), onClick = onPlayPause
+                modifier = Modifier.size(60.dp),
+                onClick = onPlayPause
             ) {
                 Icon(
                     painter = if (isPlaying) painterResource(R.drawable.pause_icon) else painterResource(
@@ -181,16 +145,13 @@ fun SongBody(
             }
             Spacer(Modifier.width(24.dp))
             IconButton(
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .background(Aurora.Purple.copy(0.9f)), onClick = onNext
+                modifier = Modifier.size(50.dp), onClick = onNext
             ) {
                 Icon(painter = painterResource(R.drawable.next_icon), contentDescription = null, tint = Color.White)
             }
         }
         Spacer(Modifier.height(36.dp))
-        CustomSlider(song, Aurora.Purple,Aurora.Purple, Aurora.Purple,sliderValue,onSliderValueChanged)
+        CustomSlider(song, Color.White,Color.White, Color.White,sliderValue,onSliderValueChanged)
     }
 }
 
@@ -207,7 +168,7 @@ fun AlbumImage(modifier: Modifier = Modifier, data: String, clipSize: Dp = 0.dp)
         modifier = Modifier.clip(RoundedCornerShape(clipSize))
     ) {
         Image(
-            modifier = if (imgArt == null) modifier.background(Aurora.Teal) else modifier,
+            modifier = if (imgArt == null) modifier.background(Aurora.Purple.copy(0.4f)) else modifier,
             painter = if (image != null) imagePainter else painterResource(R.drawable.ic_person),
             contentDescription = null,
             contentScale = ContentScale.FillHeight,

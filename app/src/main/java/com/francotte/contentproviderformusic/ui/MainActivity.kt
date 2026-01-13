@@ -14,6 +14,8 @@ import androidx.activity.viewModels
 import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -33,19 +35,22 @@ import com.francotte.contentproviderformusic.repository.UserDataRepository
 import com.francotte.contentproviderformusic.service.MusicService
 import com.francotte.contentproviderformusic.ui.composable.HomeScreen
 import com.francotte.contentproviderformusic.ui.composable.SongScreen
+import com.francotte.contentproviderformusic.ui.state.rememberMusicAppState
 import com.francotte.contentproviderformusic.ui.composable.rememberMediaController
+import com.francotte.contentproviderformusic.ui.state.MusicApp
 import com.francotte.contentproviderformusic.ui.theme.ContentProviderForMusicTheme
 import com.francotte.contentproviderformusic.utils.MediaManager
 import com.francotte.contentproviderformusic.utils.PermissionManager
 import dagger.hilt.android.AndroidEntryPoint
 
+@kotlin.OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val mainViewModel by viewModels<MainViewModel>()
 
 
-    @OptIn(UnstableApi::class)
+    @OptIn(UnstableApi::class, ExperimentalMaterial3WindowSizeClassApi::class)
     @SuppressLint("StateFlowValueCalledInComposition")
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,12 +62,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             ContentProviderForMusicTheme {
                 val permissionGranted by mainViewModel.permissionGranted.collectAsStateWithLifecycle()
-                val isPlaying by mainViewModel.isPlaying.collectAsStateWithLifecycle()
-                val currentDuration by mainViewModel.currentDuration.collectAsStateWithLifecycle()
-                val screenStatus by mainViewModel.screenStatus.collectAsStateWithLifecycle()
-                val currentIndex by mainViewModel.currentIndex.collectAsStateWithLifecycle()
                 val controller = rememberMediaController(this)
-                HideNavigationBar(window)
+                val musicAppState = rememberMusicAppState()
+                //   HideNavigationBar(window)
                 LaunchedEffect(controller) {
                     controller?.let { mainViewModel.attachController(it) }
                 }
@@ -82,57 +84,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 if (permissionGranted) {
-                    when (screenStatus) {
-                        ScreenStatus.MAIN_SCREEN -> {
-                            if (UserDataRepository.songs.isNotEmpty()) {
-                                HomeScreen(
-                                    modifier = Modifier.fillMaxSize(),
-                                    songs = UserDataRepository.songs,
-                                    currentIndex = currentIndex,
-                                    isPlaying = isPlaying,
-                                    onPrevious = { mainViewModel.prevSong() },
-                                    onNext = { mainViewModel.nextSong() },
-                                    onPlayPause = { mainViewModel.playPause() },
-                                    sliderValue = currentDuration,
-                                    onSliderValueChanged = {
-                                        mainViewModel.onSeekBarValueChanged(
-                                            it
-                                        )
-                                    },
-                                    onClose = { mainViewModel.stopSong() },
-                                    onVerticalDrag = {
-                                        mainViewModel.screenStatus.value =
-                                            ScreenStatus.SONG_SCREEN
-                                    },
-
-                                    onClick = { index, song ->
-                                        mainViewModel.playSelectedSong(index)
-                                    })
-                            }
-                        }
-
-                        ScreenStatus.SONG_SCREEN -> {
-                            UserDataRepository.songs[currentIndex].let { song ->
-                                SongScreen(
-                                    song = song,
-                                    isPlaying = isPlaying,
-                                    onPrevious = { mainViewModel.prevSong() },
-                                    onNext = { mainViewModel.nextSong() },
-                                    onPlayPause = { mainViewModel.playPause() },
-                                    sliderValue = currentDuration,
-                                    onSliderValueChanged = { mainViewModel.onSeekBarValueChanged(it) },
-                                    onNavigationClick = {
-                                        mainViewModel.screenStatus.value = ScreenStatus.MAIN_SCREEN
-                                    },
-                                    onVerticalDrag = {
-                                        mainViewModel.screenStatus.value = ScreenStatus.MAIN_SCREEN
-                                    })
-                                LaunchedEffect(Unit) { mainViewModel.playPause() }
-                            }
-
-                        }
-
-                    }
+                    MusicApp(mainViewModel,calculateWindowSizeClass(this))
                 }
             }
         }

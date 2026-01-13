@@ -64,7 +64,7 @@ fun CurrentSongBar(
         )
         CurrentSongBarTitle(song = song, modifier = Modifier.padding(horizontal = 12.dp))
         Spacer(Modifier.height(8.dp))
-        UiControllerRow(isPlaying, onPrevious, onNext, onPlayPause, onClose)
+        //UiControllerRow(isPlaying, onPrevious, onNext, onPlayPause, onClose)
         CustomSlider(song, Color.White, Color.White, Color.White, sliderValue, onSliderValueChanged)
     }
 }
