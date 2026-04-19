@@ -29,7 +29,8 @@ fun HomeScreen(
     sliderValue: Float,
     onSliderValueChanged: (Float) -> Unit,
     onClose: () -> Unit,
-    onClick: (Int) -> Unit
+    onClick: (Int) -> Unit,
+    onToggleFavorite: (String, Boolean) -> Unit
 ) {
     Scaffold(modifier = modifier, topBar = {
         SongAppBar(Modifier, "Music Player", Icons.Filled.Search, Icons.Filled.Settings)
@@ -53,7 +54,8 @@ fun HomeScreen(
             onPlayPause = onPlayPause,
             sliderValue = sliderValue,
             onSeek = onSliderValueChanged,
-            onClose = onClose
+            onClose = onClose,
+            onToggleFavorite = onToggleFavorite
         )
     }
 }

@@ -69,6 +69,7 @@ fun FloatingPlayerHost(
     onPlayPause: () -> Unit,
     onSeek: (Float) -> Unit,
     onClose: () -> Unit,
+    onToggleFavorite: (String, Boolean) -> Unit
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
@@ -192,7 +193,8 @@ fun FloatingPlayerHost(
                     onPlayPause = onPlayPause,
                     onNext = onNext,
                     onPrevious = onPrevious,
-                    onSeek = onSeek)
+                    onSeek = onSeek,
+                    onToggleFavorite = onToggleFavorite)
             }
         }
     }
@@ -246,7 +248,8 @@ fun FullPlayer(
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
-    onSeek: (Float) -> Unit
+    onSeek: (Float) -> Unit,
+    onToggleFavorite: (String, Boolean) -> Unit
 ) {
     SongBody(
         song = song,
@@ -255,6 +258,7 @@ fun FullPlayer(
         onNext = onNext,
         onPlayPause = onPlayPause,
         sliderValue = sliderValue,
-        onSliderValueChanged = onSeek
+        onSliderValueChanged = onSeek,
+        onToggleFavorite = onToggleFavorite
     )
 }

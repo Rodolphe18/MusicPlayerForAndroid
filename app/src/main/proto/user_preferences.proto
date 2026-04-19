@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+option java_package = "com.francotte.contentproviderformusic";
+option java_multiple_files = true;
+
+message UserPreferences {
+
+  map<string, bool> favorite_titles = 1;
+
+}

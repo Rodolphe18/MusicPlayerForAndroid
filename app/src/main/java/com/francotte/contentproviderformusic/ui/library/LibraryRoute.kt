@@ -4,16 +4,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.francotte.contentproviderformusic.repository.UserDataRepository
+import com.francotte.contentproviderformusic.repository.SongsFetcherRepository
 import com.francotte.contentproviderformusic.ui.MainViewModel
 import com.francotte.contentproviderformusic.ui.composable.HomeScreen
 import com.francotte.contentproviderformusic.ui.composable.LIBRARY_ROUTE
@@ -59,7 +56,7 @@ fun LibraryRoute(
             modifier = Modifier.fillMaxSize(),
             windowSizeClass = windowSizeClass,
             appState = musicAppState,
-            songs = UserDataRepository.songs,
+            songs = SongsFetcherRepository.songs,
             currentIndex = currentIndex,
             isPlaying = isPlaying,
             onPrevious = { mainViewModel.prevSong() },
@@ -75,6 +72,9 @@ fun LibraryRoute(
 
             onClick = { index ->
                 mainViewModel.playSelectedSong(index)
+            },
+            onToggleFavorite = { title, isFav ->
+                mainViewModel.updateFavoritesSongs(title,isFav)
             })
     }
 

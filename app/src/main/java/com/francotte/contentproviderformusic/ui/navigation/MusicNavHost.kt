@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import com.francotte.contentproviderformusic.ui.MainViewModel
 import com.francotte.contentproviderformusic.ui.composable.LIBRARY_ROUTE
+import com.francotte.contentproviderformusic.ui.favorites.favoritesScreen
 import com.francotte.contentproviderformusic.ui.state.MusicAppState
 import com.francotte.contentproviderformusic.ui.library.libraryScreen
 
@@ -34,6 +35,12 @@ fun MusicNavHost(
             currentIndex,
             currentDuration
         )
+        favoritesScreen(windowSizeClass,
+            appState,
+            mainViewModel,
+            isPlaying,
+            currentIndex,
+            currentDuration)
 
     }
 }
