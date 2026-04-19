@@ -27,47 +27,47 @@ import com.francotte.contentproviderformusic.model.Song
 import com.francotte.contentproviderformusic.ui.theme.Aurora
 
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun CurrentSongBar(
-    modifier: Modifier = Modifier,
-    state: AnchoredDraggableState<DragAnchors>,
-    song: Song,
-    isPlaying: Boolean,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit,
-    onPlayPause: () -> Unit,
-    sliderValue: Float,
-    onSliderValueChanged: (Float) -> Unit,
-    onClose: () -> Unit
-) {
-    val density = LocalDensity.current
-    val extraHeight = with(density) { state.requireOffset().toDp() }
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .height((150.dp + extraHeight).coerceIn(150.dp, 550.dp))
-            .background(Aurora.BarBrush)
-            .border(Dp.Hairline, Color.Black)
-    ) {
-        DraggableBar(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(24.dp)
-                .anchoredDraggable(
-                    state = state,
-                    orientation = Orientation.Vertical,
-                    enabled = true,
-                    reverseDirection = true
-                )
-        )
-        CurrentSongBarTitle(song = song, modifier = Modifier.padding(horizontal = 12.dp))
-        Spacer(Modifier.height(8.dp))
-        //UiControllerRow(isPlaying, onPrevious, onNext, onPlayPause, onClose)
-        CustomSlider(song, Color.White, Color.White, Color.White, sliderValue, onSliderValueChanged)
-    }
-}
+//@OptIn(ExperimentalFoundationApi::class)
+//@Composable
+//fun CurrentSongBar(
+//    modifier: Modifier = Modifier,
+//    state: AnchoredDraggableState<DragAnchors>,
+//    song: Song,
+//    isPlaying: Boolean,
+//    onPrevious: () -> Unit,
+//    onNext: () -> Unit,
+//    onPlayPause: () -> Unit,
+//    sliderValue: Float,
+//    onSliderValueChanged: (Float) -> Unit,
+//    onClose: () -> Unit
+//) {
+//    val density = LocalDensity.current
+//    val extraHeight = with(density) { state.requireOffset().toDp() }
+//
+//    Column(
+//        modifier = modifier
+//            .fillMaxWidth()
+//            .height((150.dp + extraHeight).coerceIn(150.dp, 550.dp))
+//            .background(Aurora.BarBrush)
+//            .border(Dp.Hairline, Color.Black)
+//    ) {
+//        DraggableBar(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(24.dp)
+//                .anchoredDraggable(
+//                    state = state,
+//                    orientation = Orientation.Vertical,
+//                    enabled = true,
+//                    reverseDirection = true
+//                )
+//        )
+//        CurrentSongBarTitle(song = song, modifier = Modifier.padding(horizontal = 12.dp))
+//        Spacer(Modifier.height(8.dp))
+//        //UiControllerRow(isPlaying, onPrevious, onNext, onPlayPause, onClose)
+//        CustomSlider(song, Color.White, Color.White, Color.White, sliderValue, onSliderValueChanged)
+//    }
+//}
 
 @Composable
 fun DraggableBar(modifier: Modifier = Modifier) {

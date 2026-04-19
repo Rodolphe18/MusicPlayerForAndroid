@@ -33,7 +33,7 @@ fun SongItem(song:Song, isCurrent:Boolean, onClick:()->Unit) {
             .padding(horizontal = 6.dp)
             .clickable { onClick() }, verticalAlignment = Alignment.CenterVertically
     ) {
-        AlbumImage(Modifier.size(50.dp), song.data, 16.dp)
+        ItemAlbumImage(Modifier.size(50.dp), song.data, 16.dp)
         Column(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier

@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt.plugin)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.protobuf)
 }
 
 android {
@@ -91,6 +92,30 @@ dependencies {
     implementation(libs.androidx.media3.session)
     implementation(libs.kotlinx.coroutines.guava)
 
+    implementation(libs.androidx.dataStore)
+    implementation(libs.protobuf.kotlin.lite)
+
   //  implementation("androidx.media3:media3-session:1.6.1")
 
+}
+
+protobuf {
+    protoc {
+        artifact =
+            libs.protobuf.protoc
+                .get()
+                .toString()
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                register("java") {
+                    option("lite")
+                }
+                register("kotlin") {
+                    option("lite")
+                }
+            }
+        }
+    }
 }

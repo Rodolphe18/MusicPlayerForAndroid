@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -13,12 +12,9 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import androidx.navigation.navDeepLink
-import com.francotte.contentproviderformusic.repository.UserDataRepository
 import com.francotte.contentproviderformusic.ui.MainViewModel
 import com.francotte.contentproviderformusic.ui.composable.FAVORITES_ROUTE
 import com.francotte.contentproviderformusic.ui.composable.HomeScreen
-import com.francotte.contentproviderformusic.ui.composable.LIBRARY_ROUTE
 import com.francotte.contentproviderformusic.ui.state.MusicAppState
 
 fun NavController.navigateToFavoritesScreen(navOptions: NavOptions? = null) {
@@ -54,14 +50,13 @@ fun FavoritesRoute(
     currentIndex: Int,
     currentDuration: Float
 ) {
-
-
+    val favoriteSongs by mainViewModel.favoritesSongs.collectAsStateWithLifecycle()
     Box(Modifier.fillMaxSize()) {
         HomeScreen(
             modifier = Modifier.fillMaxSize(),
             windowSizeClass = windowSizeClass,
             appState = musicAppState,
-            songs = emptyList(),
+            songs = favoriteSongs,
             currentIndex = currentIndex,
             isPlaying = isPlaying,
             onPrevious = { mainViewModel.prevSong() },
@@ -77,7 +72,8 @@ fun FavoritesRoute(
 
             onClick = { index ->
                 mainViewModel.playSelectedSong(index)
-            })
+            },
+            onToggleFavorite = {_,_->})
     }
 
 

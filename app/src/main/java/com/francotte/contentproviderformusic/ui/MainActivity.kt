@@ -13,14 +13,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
@@ -31,13 +29,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
-import com.francotte.contentproviderformusic.repository.UserDataRepository
+import com.francotte.contentproviderformusic.repository.SongsFetcherRepository
 import com.francotte.contentproviderformusic.service.MusicService
-import com.francotte.contentproviderformusic.ui.composable.HomeScreen
-import com.francotte.contentproviderformusic.ui.composable.SongScreen
-import com.francotte.contentproviderformusic.ui.state.rememberMusicAppState
 import com.francotte.contentproviderformusic.ui.composable.rememberMediaController
 import com.francotte.contentproviderformusic.ui.state.MusicApp
+import com.francotte.contentproviderformusic.ui.state.rememberMusicAppState
 import com.francotte.contentproviderformusic.ui.theme.ContentProviderForMusicTheme
 import com.francotte.contentproviderformusic.utils.MediaManager
 import com.francotte.contentproviderformusic.utils.PermissionManager
@@ -73,11 +69,11 @@ class MainActivity : ComponentActivity() {
                 }
                 LaunchedEffect(permissionGranted) {
                     if (permissionGranted) {
-                        UserDataRepository.updateSongs(MediaManager.getUserSongs(this@MainActivity))
+                        SongsFetcherRepository.updateSongs(MediaManager.getUserSongs(this@MainActivity))
                     }
                 }
-                LaunchedEffect(permissionGranted, controller, UserDataRepository.songs.size) {
-                    if (permissionGranted && controller != null && UserDataRepository.songs.isNotEmpty()) {
+                LaunchedEffect(permissionGranted, controller, SongsFetcherRepository.songs.size) {
+                    if (permissionGranted && controller != null && SongsFetcherRepository.songs.isNotEmpty()) {
                         if (controller.mediaItemCount == 0) {
                             mainViewModel.playSelectedSong(0)
                         }

@@ -8,16 +8,27 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
+import com.francotte.contentproviderformusic.data.UserDataRepository
+import com.francotte.contentproviderformusic.domain.FavoritesUseCase
 import com.francotte.contentproviderformusic.model.Song
-import com.francotte.contentproviderformusic.repository.UserDataRepository
+import com.francotte.contentproviderformusic.repository.SongsFetcherRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel : ViewModel() {
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val userDataRepository: UserDataRepository,
+    favoritesUseCase: FavoritesUseCase
+) : ViewModel() {
 
     private val _permissionsGranted = MutableStateFlow(false)
     val permissionGranted = _permissionsGranted.asStateFlow()
@@ -37,11 +48,13 @@ class MainViewModel : ViewModel() {
             isPlaying.value = player.isPlaying
             currentIndex.value = player.currentMediaItemIndex
             val idx = player.currentMediaItemIndex
-            if (idx in UserDataRepository.songs.indices) {
-                currentSong.value = UserDataRepository.songs[idx]
+            if (idx in SongsFetcherRepository.songs.indices) {
+                currentSong.value = SongsFetcherRepository.songs[idx]
             }
         }
     }
+
+    val favoritesSongs = favoritesUseCase.invoke().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun startProgressUpdates() {
         if (progressJob != null) return
@@ -58,6 +71,12 @@ class MainViewModel : ViewModel() {
     fun stopProgressUpdates() {
         progressJob?.cancel()
         progressJob = null
+    }
+
+    fun updateFavoritesSongs(songTitle: String, isFavorite: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setFavoritesSongs(songTitle, isFavorite)
+        }
     }
 
 
@@ -85,18 +104,19 @@ class MainViewModel : ViewModel() {
     fun prevSong() = controller?.seekToPrevious()
     fun stopSong() = controller?.stop()
 
-    fun onSeekBarValueChanged(progress: Float) = controller?.seekTo((progress.toLong().coerceAtLeast(0L)))
+    fun onSeekBarValueChanged(progress: Float) =
+        controller?.seekTo((progress.toLong().coerceAtLeast(0L)))
 
 
     fun playSelectedSong(index: Int) {
         viewModelScope.launch {
             val controller = this@MainViewModel.controller ?: return@launch
             if (controller.mediaItemCount == 0) {
-                val items = UserDataRepository.songs.map { it.toMediaItem() }
+                val items = SongsFetcherRepository.songs.map { it.toMediaItem() }
                 controller.setMediaItems(items)
                 controller.prepare()
             }
-            controller.seekTo(index,0)
+            controller.seekTo(index, 0)
             controller.play()
 
         }
