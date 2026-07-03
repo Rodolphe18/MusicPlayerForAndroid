@@ -51,12 +51,14 @@ fun FavoritesRoute(
     currentDuration: Float
 ) {
     val favoriteSongs by mainViewModel.favoritesSongs.collectAsStateWithLifecycle()
+    val currentSong by mainViewModel.currentPlayingSong.collectAsStateWithLifecycle()
     Box(Modifier.fillMaxSize()) {
         HomeScreen(
             modifier = Modifier.fillMaxSize(),
             windowSizeClass = windowSizeClass,
             appState = musicAppState,
             songs = favoriteSongs,
+            currentSong = currentSong,
             currentIndex = currentIndex,
             isPlaying = isPlaying,
             onPrevious = { mainViewModel.prevSong() },
@@ -71,9 +73,11 @@ fun FavoritesRoute(
             onClose = { mainViewModel.stopSong() },
 
             onClick = { index ->
-                mainViewModel.playSelectedSong(index)
+                mainViewModel.playSong(favoriteSongs[index])
             },
-            onToggleFavorite = {_,_->})
+            onToggleFavorite = { title, isFav ->
+                mainViewModel.updateFavoritesSongs(title, isFav)
+            })
     }
 
 

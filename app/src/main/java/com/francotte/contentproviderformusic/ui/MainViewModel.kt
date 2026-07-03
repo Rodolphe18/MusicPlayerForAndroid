@@ -13,11 +13,17 @@ import com.francotte.contentproviderformusic.domain.FavoritesUseCase
 import com.francotte.contentproviderformusic.model.Song
 import com.francotte.contentproviderformusic.repository.SongsFetcherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -54,7 +60,25 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    val favoritesSongs = favoritesUseCase.invoke().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val favoritesSongs = favoritesUseCase.invoke().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), persistentListOf())
+
+    // Liste complète des chansons, avec l'état favori dérivé des préférences persistées.
+    // C'est cette liste (et non SongsFetcherRepository.songs brute) qui doit alimenter l'UI
+    // pour que le FavButton reflète le bon état et se mette à jour au clic.
+    val songs: StateFlow<ImmutableList<Song>> = userDataRepository.userData
+        .map { userData ->
+            SongsFetcherRepository.songs
+                .map { it.copy(isFavorite = it.title in userData.favoritesSongs) }
+                .toImmutableList()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), persistentListOf())
+
+    // Chanson actuellement en lecture, avec son état favori, bornée à la liste réelle.
+    // La carte du player doit afficher CETTE chanson, indépendamment de la liste affichée
+    // par l'onglet (bibliothèque complète vs sous-liste de favoris) — sinon accès hors bornes.
+    val currentPlayingSong: StateFlow<Song?> = combine(songs, currentIndex) { list, idx ->
+        list.getOrNull(idx)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun startProgressUpdates() {
         if (progressJob != null) return
@@ -107,6 +131,14 @@ class MainViewModel @Inject constructor(
     fun onSeekBarValueChanged(progress: Float) =
         controller?.seekTo((progress.toLong().coerceAtLeast(0L)))
 
+
+    // Joue une chanson identifiée par son uri, en résolvant son index réel dans la playlist
+    // (SongsFetcherRepository.songs). Indispensable depuis l'écran Favoris, dont la liste
+    // affichée est une sous-liste : son index local ne correspond pas à l'index de lecture.
+    fun playSong(song: Song) {
+        val index = SongsFetcherRepository.songs.indexOfFirst { it.uri == song.uri }
+        if (index >= 0) playSelectedSong(index)
+    }
 
     fun playSelectedSong(index: Int) {
         viewModelScope.launch {

@@ -14,12 +14,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination
 import com.francotte.contentproviderformusic.ui.theme.Aurora
+import kotlinx.collections.immutable.ImmutableList
 
 
 @Composable
 fun BottomBar(
     modifier: Modifier = Modifier,
-    destinations: List<TopLevelDestination>,
+    destinations: ImmutableList<TopLevelDestination>,
     onNavigateToDestination: (TopLevelDestination) -> Unit,
     currentDestination: NavDestination?
 ) {
