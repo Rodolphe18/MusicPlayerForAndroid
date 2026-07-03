@@ -94,9 +94,28 @@ dependencies {
 
     implementation(libs.androidx.dataStore)
     implementation(libs.protobuf.kotlin.lite)
+    implementation(libs.kotlinx.collections.immutable)
 
   //  implementation("androidx.media3:media3-session:1.6.1")
 
+}
+
+// En module unique, KSP (Hilt) ne voit pas les classes proto générées, d'où
+// les erreurs "error.NonExistentClass" sur UserPreferences. On ajoute donc
+// explicitement les dossiers proto générés aux sources de la tâche KSP.
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        afterEvaluate {
+            val capName = variant.name.replaceFirstChar { it.uppercase() }
+            tasks.named("ksp${capName}Kotlin") {
+                dependsOn("generate${capName}Proto")
+                (this as org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompileTool<*>).source(
+                    "build/generated/source/proto/${variant.name}/java",
+                    "build/generated/source/proto/${variant.name}/kotlin",
+                )
+            }
+        }
+    }
 }
 
 protobuf {
