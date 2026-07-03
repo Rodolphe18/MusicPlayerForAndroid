@@ -1,6 +1,5 @@
 package com.francotte.contentproviderformusic.ui.composable
 
-import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -16,13 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,46 +34,6 @@ import com.francotte.contentproviderformusic.R
 import com.francotte.contentproviderformusic.model.Song
 import com.francotte.contentproviderformusic.ui.theme.Aurora
 import com.francotte.contentproviderformusic.utils.getImgArt
-
-
-//@OptIn(ExperimentalMaterial3Api::class)
-//@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-//@Composable
-//fun SongScreen(
-//    song: Song,
-//    isPlaying: Boolean,
-//    onPrevious: () -> Unit,
-//    onNext: () -> Unit,
-//    onPlayPause: () -> Unit,
-//    sliderValue: Float,
-//    onSliderValueChanged: (Float) -> Unit,
-//    onNavigationClick: () -> Unit
-//) {
-//    Scaffold(topBar = {
-//        SongAppBar(
-//            modifier = Modifier,
-//            song.title,
-//            Icons.AutoMirrored.Filled.ArrowBack,
-//            Icons.Filled.Favorite,
-//            onNavigationClick = onNavigationClick
-//        )
-//    }) {
-//        SongBody(
-//            song,
-//            isPlaying,
-//            onPrevious,
-//            onNext,
-//            onPlayPause,
-//            sliderValue,
-//            onSliderValueChanged
-//        )
-//    }
-//}
-//
-//enum class DragAnchors {
-//    Start,
-//    End,
-//}
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)

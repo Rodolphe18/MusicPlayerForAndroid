@@ -30,11 +30,11 @@ sealed class TopLevelDestination(
         FAVORITES_ROUTE
     )
 
-    data object PLAYLISTS : TopLevelDestination(
-        Icons.AutoMirrored.Filled.PlaylistPlay,
-        R.string.playlists,
-        PLAYLISTS_ROUTE
-    )
+//    data object PLAYLISTS : TopLevelDestination(
+//        Icons.AutoMirrored.Filled.PlaylistPlay,
+//        R.string.playlists,
+//        PLAYLISTS_ROUTE
+//    )
 
 }
 
