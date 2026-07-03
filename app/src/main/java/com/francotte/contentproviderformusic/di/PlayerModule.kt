@@ -11,7 +11,7 @@ import dagger.hilt.android.scopes.ServiceScoped
 
 @Module
 @InstallIn(ServiceComponent::class)
-object PlayerServiceModule {
+object PlayerModule {
 
     @Provides
     @ServiceScoped
