@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.francotte.contentproviderformusic.model.Song
 import com.francotte.contentproviderformusic.ui.state.MusicAppState
+import kotlinx.collections.immutable.ImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -20,7 +21,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     windowSizeClass: WindowSizeClass,
     appState: MusicAppState,
-    songs: List<Song>,
+    songs: ImmutableList<Song>,
+    currentSong: Song?,
     currentIndex: Int,
     isPlaying: Boolean,
     onPrevious: () -> Unit,
@@ -46,6 +48,7 @@ fun HomeScreen(
         FloatingPlayerHost(
             modifier = Modifier.padding(top = innerPadding.calculateTopPadding(), bottom = innerPadding.calculateBottomPadding()),
             songs = songs,
+            currentSong = currentSong,
             currentIndex = currentIndex,
             isPlaying = isPlaying,
             onPrevious = onPrevious,

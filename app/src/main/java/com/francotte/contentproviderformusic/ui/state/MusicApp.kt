@@ -22,6 +22,8 @@ import com.francotte.contentproviderformusic.ui.favorites.navigateToFavoritesScr
 import com.francotte.contentproviderformusic.ui.library.navigateToLibraryScreen
 import com.francotte.contentproviderformusic.ui.navigation.MusicNavHost
 import com.francotte.contentproviderformusic.ui.playlists.navigateToPlayListsScreen
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun MusicApp(mainViewModel: MainViewModel, windowSizeClass: WindowSizeClass) {
@@ -66,12 +68,12 @@ class MusicAppState(val navController: NavHostController) {
             } ?: previousDestination.value
         }
 
-    val topLevelDestinations: List<TopLevelDestination>
+    val topLevelDestinations: ImmutableList<TopLevelDestination>
         @Composable get() {
-            return listOf(
+            return persistentListOf(
                 TopLevelDestination.LIBRARY,
                 TopLevelDestination.FAVORITES,
-                TopLevelDestination.PLAYLISTS
+            //    TopLevelDestination.PLAYLISTS
             )
         }
 
@@ -84,7 +86,7 @@ class MusicAppState(val navController: NavHostController) {
             return when (currentRoute) {
                 LIBRARY_ROUTE -> TopLevelDestination.LIBRARY
                 FAVORITES_ROUTE -> TopLevelDestination.FAVORITES
-                PLAYLISTS_ROUTE -> TopLevelDestination.PLAYLISTS
+              //  PLAYLISTS_ROUTE -> TopLevelDestination.PLAYLISTS
                 else -> null
             }
         }
@@ -98,7 +100,7 @@ class MusicAppState(val navController: NavHostController) {
         when (topLevelDestination) {
             is TopLevelDestination.LIBRARY -> navController.navigateToLibraryScreen(topLevelNavOptions)
             is TopLevelDestination.FAVORITES -> navController.navigateToFavoritesScreen(topLevelNavOptions)
-            is TopLevelDestination.PLAYLISTS -> navController.navigateToPlayListsScreen(topLevelNavOptions)
+       //     is TopLevelDestination.PLAYLISTS -> navController.navigateToPlayListsScreen(topLevelNavOptions)
         }
     }
 
