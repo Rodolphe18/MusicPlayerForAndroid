@@ -64,12 +64,12 @@ fun CustomSlider(song: Song, timeColor:Color, thumbColor: Color, trackColor:Colo
             }
         )
         Text(
-            modifier = Modifier.weight(0.15f),
+            modifier = Modifier.weight(0.18f),
             text = formatDuration(song.duration),
             fontSize = 10.sp,
             color = timeColor
         )
-        Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(2.dp))
     }
 
 }

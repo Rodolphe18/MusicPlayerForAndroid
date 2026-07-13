@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -65,6 +66,7 @@ fun SongBody(
         Spacer(Modifier.height(36.dp))
         Text(
             text = song.title,
+            style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             modifier = Modifier.align(Alignment.CenterHorizontally),
             color = Color.White
@@ -76,7 +78,7 @@ fun SongBody(
                 onClick = onPrevious
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.previous_icon),
+                    painter = painterResource(R.drawable.ic_skip_previous),
                     contentDescription = null,
                     tint = Color.White
                 )
@@ -87,8 +89,8 @@ fun SongBody(
                 onClick = onPlayPause
             ) {
                 Icon(
-                    painter = if (isPlaying) painterResource(R.drawable.pause_icon) else painterResource(
-                        R.drawable.play_icon
+                    painter = if (isPlaying) painterResource(R.drawable.ic_pause) else painterResource(
+                        R.drawable.ic_play_arrow
                     ), contentDescription = null, tint = Color.White
                 )
             }
@@ -97,7 +99,7 @@ fun SongBody(
                 modifier = Modifier.size(50.dp), onClick = onNext
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.next_icon),
+                    painter = painterResource(R.drawable.ic_skip_next),
                     contentDescription = null,
                     tint = Color.White
                 )

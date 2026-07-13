@@ -75,8 +75,8 @@ fun LibraryRoute(
             },
             onClose = { mainViewModel.stopSong() },
 
-            onClick = { index ->
-                mainViewModel.playSong(songs[index])
+            onPlay = { list, index ->
+                mainViewModel.playFromList(list, index)
             },
             onToggleFavorite = { title, isFav ->
                 mainViewModel.updateFavoritesSongs(title,isFav)
