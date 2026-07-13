@@ -40,10 +40,14 @@ class MainViewModel @Inject constructor(
     val permissionGranted = _permissionsGranted.asStateFlow()
     val isPlaying = MutableStateFlow(false)
     val isLoading = MutableStateFlow(true)
-    val currentSong: MutableStateFlow<Song?> = MutableStateFlow(null)
     val currentDuration: MutableStateFlow<Float> = MutableStateFlow(0f)
     val currentIndex: MutableStateFlow<Int> = MutableStateFlow(0)
     var screenStatus = MutableStateFlow(ScreenStatus.MAIN_SCREEN)
+
+    // File de lecture réellement chargée dans le player. Elle vaut la bibliothèque complète
+    // ou la sous-liste des favoris selon l'écran depuis lequel on lance la lecture — c'est
+    // elle qui définit ce que font suivant/précédent.
+    private val _playQueue = MutableStateFlow<List<Song>>(emptyList())
 
     private var controller: MediaController? = null
 
@@ -53,10 +57,6 @@ class MainViewModel @Inject constructor(
         override fun onEvents(player: Player, events: Player.Events) {
             isPlaying.value = player.isPlaying
             currentIndex.value = player.currentMediaItemIndex
-            val idx = player.currentMediaItemIndex
-            if (idx in SongsFetcherRepository.songs.indices) {
-                currentSong.value = SongsFetcherRepository.songs[idx]
-            }
         }
     }
 
@@ -73,11 +73,15 @@ class MainViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), persistentListOf())
 
-    // Chanson actuellement en lecture, avec son état favori, bornée à la liste réelle.
-    // La carte du player doit afficher CETTE chanson, indépendamment de la liste affichée
-    // par l'onglet (bibliothèque complète vs sous-liste de favoris) — sinon accès hors bornes.
-    val currentPlayingSong: StateFlow<Song?> = combine(songs, currentIndex) { list, idx ->
-        list.getOrNull(idx)
+    // Chanson actuellement en lecture, dérivée de la FILE de lecture (et non de la biblio),
+    // bornée à l'index courant, avec son état favori réappliqué depuis les préférences.
+    // La carte du player affiche CETTE chanson, quel que soit l'onglet affiché.
+    val currentPlayingSong: StateFlow<Song?> = combine(
+        _playQueue,
+        currentIndex,
+        userDataRepository.userData
+    ) { queue, idx, userData ->
+        queue.getOrNull(idx)?.let { it.copy(isFavorite = it.title in userData.favoritesSongs) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun startProgressUpdates() {
@@ -132,27 +136,26 @@ class MainViewModel @Inject constructor(
         controller?.seekTo((progress.toLong().coerceAtLeast(0L)))
 
 
-    // Joue une chanson identifiée par son uri, en résolvant son index réel dans la playlist
-    // (SongsFetcherRepository.songs). Indispensable depuis l'écran Favoris, dont la liste
-    // affichée est une sous-liste : son index local ne correspond pas à l'index de lecture.
-    fun playSong(song: Song) {
-        val index = SongsFetcherRepository.songs.indexOfFirst { it.uri == song.uri }
-        if (index >= 0) playSelectedSong(index)
-    }
-
-    fun playSelectedSong(index: Int) {
+    // Lance la lecture à partir d'une liste donnée (bibliothèque ou favoris) et d'un index
+    // LOCAL à cette liste. La liste devient la file de lecture, donc suivant/précédent
+    // naviguent à l'intérieur d'elle. On ne recharge la file que si elle a changé.
+    fun playFromList(list: List<Song>, index: Int) {
         viewModelScope.launch {
             val controller = this@MainViewModel.controller ?: return@launch
-            if (controller.mediaItemCount == 0) {
-                val items = SongsFetcherRepository.songs.map { it.toMediaItem() }
-                controller.setMediaItems(items)
+            if (index !in list.indices) return@launch
+            val sameQueue = _playQueue.value.map { it.uri } == list.map { it.uri }
+            if (!sameQueue || controller.mediaItemCount == 0) {
+                _playQueue.value = list
+                controller.setMediaItems(list.map { it.toMediaItem() })
                 controller.prepare()
             }
             controller.seekTo(index, 0)
             controller.play()
-
         }
     }
+
+    // Utilisé à l'initialisation : lecture depuis la bibliothèque complète.
+    fun playSelectedSong(index: Int) = playFromList(SongsFetcherRepository.songs, index)
 }
 
 

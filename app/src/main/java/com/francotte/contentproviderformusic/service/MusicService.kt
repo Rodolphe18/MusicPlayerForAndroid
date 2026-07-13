@@ -1,24 +1,24 @@
 package com.francotte.contentproviderformusic.service
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
-import androidx.core.app.NotificationCompat
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import androidx.media3.ui.PlayerNotificationManager
-import com.francotte.contentproviderformusic.R
 import com.francotte.contentproviderformusic.ui.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 @UnstableApi
@@ -31,6 +31,21 @@ class MusicService : MediaSessionService() {
     private lateinit var session: MediaSession
 
     private val channelId = "playback"
+
+
+    val bluetoothManager: BluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
+    
+    val d = bluetoothManager.adapter
+
+        val s = d.bluetoothLeScanner
+    
+    val bluetoothGattCallback = object : BluetoothGattCallback() {
+        override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
+            super.onConnectionStateChange(gatt, status, newState)
+
+        }
+    }
+
 
 
     override fun onCreate() {
@@ -60,12 +75,16 @@ class MusicService : MediaSessionService() {
         )
     }
 
+
     private fun ensureChannel() {
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         val ch = NotificationChannel(channelId, "Lecture audio", NotificationManager.IMPORTANCE_LOW)
         nm.createNotificationChannel(ch)
     }
 
+    fun dd(): ByteArray {
+       return "kdkdk".encodeToByteArray()
+    }
 
     private val exitReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {

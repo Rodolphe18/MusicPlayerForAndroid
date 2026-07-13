@@ -12,7 +12,9 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import com.francotte.contentproviderformusic.R
 import com.francotte.contentproviderformusic.ui.MainViewModel
+import com.francotte.contentproviderformusic.ui.composable.EmptyState
 import com.francotte.contentproviderformusic.ui.composable.FAVORITES_ROUTE
 import com.francotte.contentproviderformusic.ui.composable.HomeScreen
 import com.francotte.contentproviderformusic.ui.state.MusicAppState
@@ -72,11 +74,18 @@ fun FavoritesRoute(
             },
             onClose = { mainViewModel.stopSong() },
 
-            onClick = { index ->
-                mainViewModel.playSong(favoriteSongs[index])
+            onPlay = { list, index ->
+                mainViewModel.playFromList(list, index)
             },
             onToggleFavorite = { title, isFav ->
                 mainViewModel.updateFavoritesSongs(title, isFav)
+            },
+            emptyContent = {
+                EmptyState(
+                    icon = R.drawable.ic_favorite_border,
+                    title = "No favorites yet",
+                    subtitle = "Tap the heart on a song to add it to your favorites."
+                )
             })
     }
 

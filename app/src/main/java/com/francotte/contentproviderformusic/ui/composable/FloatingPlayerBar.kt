@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -57,7 +58,8 @@ fun FloatingPlayerHost(
     onPlayPause: () -> Unit,
     onSeek: (Float) -> Unit,
     onClose: () -> Unit,
-    onToggleFavorite: (String, Boolean) -> Unit
+    onToggleFavorite: (String, Boolean) -> Unit,
+    emptyContent: @Composable () -> Unit = {}
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
@@ -112,6 +114,16 @@ fun FloatingPlayerHost(
         val cornerDp = lerp(16.dp, 0.dp, progress).coerceAtLeast(0.dp)
         val sidePaddingDp = lerp(collapsedHorizontalPadding, expandedHorizontalPadding, progress)
             .coerceAtLeast(0.dp)
+
+        // ---- EMPTY STATE ---- (derrière la liste ; la carte player reste au-dessus)
+        if (songs.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                emptyContent()
+            }
+        }
 
         // ---- LISTE ----
         LazyColumn(

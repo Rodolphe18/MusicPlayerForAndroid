@@ -27,7 +27,7 @@ fun UiControllerRow(modifier: Modifier=Modifier,isPlaying: Boolean,
         ) {
             Icon(
                 painter = painterResource(
-                    R.drawable.previous_icon
+                    R.drawable.ic_skip_previous
                 ), contentDescription = null,tint = Color.White
             )
         }
@@ -36,8 +36,8 @@ fun UiControllerRow(modifier: Modifier=Modifier,isPlaying: Boolean,
             modifier = Modifier.size(35.dp), onClick = onPlayPause
         ) {
             Icon(
-                painter = if (isPlaying) painterResource(R.drawable.pause_icon) else painterResource(
-                    R.drawable.play_icon
+                painter = if (isPlaying) painterResource(R.drawable.ic_pause) else painterResource(
+                    R.drawable.ic_play_arrow
                 ), contentDescription = null, tint = Color.White
             )
         }
@@ -48,7 +48,7 @@ fun UiControllerRow(modifier: Modifier=Modifier,isPlaying: Boolean,
         ) {
             Icon(
                 painter = painterResource(
-                    R.drawable.next_icon
+                    R.drawable.ic_skip_next
                 ), contentDescription = null,tint = Color.White
             )
         }

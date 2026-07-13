@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -43,7 +44,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
-import androidx.compose.ui.unit.sp
 import com.francotte.contentproviderformusic.model.Song
 import com.francotte.contentproviderformusic.ui.theme.Aurora
 import kotlinx.collections.immutable.ImmutableList
@@ -73,7 +73,7 @@ fun MiniPlayer(
         Text(
             modifier = Modifier.weight(1f),
             text = song.title,
-            fontSize = 14.sp,
+            style = MaterialTheme.typography.titleSmall,
             color = Color.White,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
