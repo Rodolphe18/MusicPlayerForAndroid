@@ -19,15 +19,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,12 +34,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.francotte.contentproviderformusic.R
@@ -73,7 +69,6 @@ fun PlaylistsScreen(
         if (next.isEmpty()) exitSelection() else selectedIds = next
     }
 
-    // Ferme le mode suppression au bouton retour système.
     BackHandler(enabled = selectionMode) { exitSelection() }
 
     Scaffold(
@@ -87,7 +82,8 @@ fun PlaylistsScreen(
             )
         },
         floatingActionButton = {
-            if (!selectionMode) {
+            // Pas de FAB quand la liste est vide (l'état vide a déjà son bouton) ni en sélection.
+            if (playlists.isNotEmpty() && !selectionMode) {
                 FloatingActionButton(
                     onClick = onCreateClick,
                     shape = RoundedCornerShape(16.dp),
@@ -109,9 +105,17 @@ fun PlaylistsScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
+                    item {
+                        Text(
+                            text = "My Playlists",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(vertical = 8.dp),
+                        )
+                    }
                     items(playlists, key = { it.id }) { playlist ->
                         PlaylistCard(
                             playlist = playlist,
@@ -132,31 +136,15 @@ fun PlaylistsScreen(
                 }
             }
 
-            // Barre du bas persistante avec l'icône poubelle (mode suppression).
             if (selectionMode) {
-                Surface(
-                    modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
-                    color = Aurora.Purple,
-                    shadowElevation = 8.dp,
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text("${selectedIds.size} sélectionnée(s)", color = Color.White)
-                        IconButton(onClick = {
-                            onDeletePlaylists(selectedIds)
-                            exitSelection()
-                        }) {
-                            Icon(
-                                painterResource(R.drawable.ic_delete),
-                                contentDescription = "Supprimer",
-                                tint = Color.White,
-                            )
-                        }
-                    }
-                }
+                SelectionDeleteBar(
+                    count = selectedIds.size,
+                    onDelete = {
+                        onDeletePlaylists(selectedIds)
+                        exitSelection()
+                    },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
             }
         }
     }
@@ -171,20 +159,40 @@ private fun PlaylistCard(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
+    val cardBrush = Brush.horizontalGradient(
+        listOf(Aurora.Purple.copy(alpha = 0.12f), Aurora.Teal.copy(alpha = 0.12f)),
+    )
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Aurora.Purple.copy(alpha = if (selected) 0.16f else 0.08f))
+            .clip(RoundedCornerShape(18.dp))
+            .background(cardBrush)
+            .then(if (selected) Modifier.background(Aurora.Purple.copy(alpha = 0.18f)) else Modifier)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(16.dp),
+            .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // Vignette colorée (dégradé accent) avec l'icône playlist.
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Aurora.AccentBrush),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_playlist),
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(30.dp),
+            )
+        }
+        Spacer(Modifier.size(14.dp))
         Column(Modifier.weight(1f)) {
             Text(
                 text = playlist.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -198,11 +206,17 @@ private fun PlaylistCard(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(8.dp))
+            // Pastille compteur de titres.
             Text(
                 text = "${playlist.songTitles.size} titre(s)",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                fontWeight = FontWeight.SemiBold,
+                color = Aurora.Purple,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(Aurora.Purple.copy(alpha = 0.14f))
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
             )
         }
         if (selectionMode) {
@@ -213,38 +227,36 @@ private fun PlaylistCard(
 
 @Composable
 private fun PlaylistsEmptyState(modifier: Modifier = Modifier, onCreateClick: () -> Unit) {
-    val gradient = Brush.linearGradient(listOf(Aurora.Purple, Aurora.Teal, Aurora.Cyan))
     Column(
         modifier = modifier.padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        // Icône teintée par un dégradé (SrcAtop sur les pixels opaques) → multicolore.
+        // Icône playlist (Phosphor) multicolore : le dégradé est baké dans le vecteur.
         Image(
-            painter = painterResource(R.drawable.playlist_icon),
+            painter = painterResource(R.drawable.ic_playlist_gradient),
             contentDescription = null,
-            modifier = Modifier
-                .size(96.dp)
-                .drawWithContent {
-                    drawContent()
-                    drawRect(brush = gradient, blendMode = BlendMode.SrcAtop)
-                },
+            modifier = Modifier.size(104.dp),
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(24.dp))
         Text(
             text = "Aucune playlist",
             style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
         )
         Spacer(Modifier.height(8.dp))
         Text(
             text = "Créez votre première playlist pour rassembler vos titres préférés.",
             style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
         )
-        Spacer(Modifier.height(24.dp))
-        Button(onClick = onCreateClick) {
-            Text("Créer une playlist")
-        }
+        Spacer(Modifier.height(28.dp))
+        com.francotte.contentproviderformusic.ui.composable.GradientButton(
+            text = "Créer une playlist",
+            onClick = onCreateClick,
+            modifier = Modifier.padding(horizontal = 24.dp),
+        )
     }
 }

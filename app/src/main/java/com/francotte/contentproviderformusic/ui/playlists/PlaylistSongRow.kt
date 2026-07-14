@@ -1,7 +1,8 @@
 package com.francotte.contentproviderformusic.ui.playlists
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,22 +26,39 @@ import com.francotte.contentproviderformusic.ui.composable.ItemAlbumImage
 import com.francotte.contentproviderformusic.ui.theme.Aurora
 
 /**
- * Rangée de titre réutilisée par le détail (action retirer) et l'ajout (action +/coche).
- * [trailing] fournit l'action à droite.
+ * Rangée de titre réutilisée par le détail (sélection/lecture) et l'ajout (action +/coche).
+ * [trailing] fournit l'action/indicateur à droite.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistSongRow(
     song: Song,
     isCurrent: Boolean = false,
+    selected: Boolean = false,
     onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
     trailing: @Composable RowScope.() -> Unit,
 ) {
+    val bg = when {
+        selected -> Aurora.Purple.copy(alpha = 0.18f)
+        isCurrent -> Aurora.Purple.copy(alpha = 0.15f)
+        else -> Color.White
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isCurrent) Aurora.Purple.copy(0.15f) else Color.White)
-            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
+            .background(bg)
+            .then(
+                if (onClick != null || onLongClick != null) {
+                    Modifier.combinedClickable(
+                        onClick = { onClick?.invoke() },
+                        onLongClick = onLongClick,
+                    )
+                } else {
+                    Modifier
+                },
+            )
             .padding(horizontal = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

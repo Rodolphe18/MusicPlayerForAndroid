@@ -63,6 +63,8 @@ fun NavGraphBuilder.playlistsGraph(
         val playlists by mainViewModel.playlists.collectAsStateWithLifecycle()
         val allSongs by mainViewModel.songs.collectAsStateWithLifecycle()
         val currentSong by mainViewModel.currentPlayingSong.collectAsStateWithLifecycle()
+        val isPlaying by mainViewModel.isPlaying.collectAsStateWithLifecycle()
+        val sliderValue by mainViewModel.currentDuration.collectAsStateWithLifecycle()
         val playlist = playlists.find { it.id == playlistId }
         val playlistSongs = remember(playlist, allSongs) {
             playlist?.let { resolveByTitle(it.songTitles, allSongs) { s -> s.title } } ?: emptyList()
@@ -71,10 +73,18 @@ fun NavGraphBuilder.playlistsGraph(
             playlist = playlist,
             songs = playlistSongs,
             currentSong = currentSong,
+            isPlaying = isPlaying,
+            sliderValue = sliderValue,
             onBack = { appState.navController.popBackStack() },
             onAddSongsClick = { appState.navController.navigateToPlaylistAddSongs(playlistId) },
             onPlay = { list, index -> mainViewModel.playFromList(list, index) },
             onRemoveSong = { songTitle -> mainViewModel.removeSongFromPlaylist(playlistId, songTitle) },
+            onPlayPause = { mainViewModel.playPause() },
+            onNext = { mainViewModel.nextSong() },
+            onPrevious = { mainViewModel.prevSong() },
+            onSeek = { mainViewModel.onSeekBarValueChanged(it) },
+            onClose = { mainViewModel.stopSong() },
+            onToggleFavorite = { title, isFav -> mainViewModel.updateFavoritesSongs(title, isFav) },
         )
     }
 

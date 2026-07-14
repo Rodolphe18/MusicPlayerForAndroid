@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
@@ -43,23 +44,29 @@ import com.francotte.contentproviderformusic.ui.theme.Aurora
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.launch
 
+/**
+ * Échafaudage du lecteur : rend [content] en fond (liste, détail…) puis, par-dessus,
+ * le scrim + la carte "sheet" glissable qui bascule entre MiniPlayer et FullPlayer.
+ *
+ * [content] reçoit :
+ *  - `bottomContentPadding` : l'espace à laisser en bas pour ne pas être masqué par le
+ *    mini-player replié ;
+ *  - `expand` : à appeler (ex. au clic d'une chanson) pour passer le lecteur en plein écran.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FloatingPlayerHost(
-    modifier: Modifier = Modifier,
-    songs: ImmutableList<Song>,
+fun PlayerSheetScaffold(
     currentSong: Song?,
-    currentIndex: Int,
     isPlaying: Boolean,
     sliderValue: Float,
-    onSongClick: (Int) -> Unit,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
     onPlayPause: () -> Unit,
     onSeek: (Float) -> Unit,
     onClose: () -> Unit,
     onToggleFavorite: (String, Boolean) -> Unit,
-    emptyContent: @Composable () -> Unit = {}
+    modifier: Modifier = Modifier,
+    content: @Composable (bottomContentPadding: Dp, expand: () -> Unit) -> Unit,
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
@@ -78,7 +85,6 @@ fun FloatingPlayerHost(
 
         val collapsedHeightPx = with(density) { collapsedHeight.toPx() }
 
-        // ✅ Position Y du mini-player : on le remonte en laissant gapBottom sous la carte
         val collapsedY = fullHeightPx - collapsedHeightPx
         val expandedY = 0f
 
@@ -92,7 +98,6 @@ fun FloatingPlayerHost(
             )
         }
 
-        // Anchors
         SideEffect {
             state.updateAnchors(
                 DraggableAnchors {
@@ -102,47 +107,20 @@ fun FloatingPlayerHost(
             )
         }
 
-        // Offset safe
         val yPx = (state.offset ?: collapsedY).let { if (it.isFinite()) it else collapsedY }
 
-        // Progress 0..1 (safe)
         val denom = (collapsedY - expandedY).takeIf { it.isFinite() && it > 1f } ?: 1f
         val progress = (((collapsedY - yPx) / denom).takeIf { it.isFinite() } ?: 0f)
             .coerceIn(0f, 1f)
 
-        // Animations visuelles
         val cornerDp = lerp(16.dp, 0.dp, progress).coerceAtLeast(0.dp)
         val sidePaddingDp = lerp(collapsedHorizontalPadding, expandedHorizontalPadding, progress)
             .coerceAtLeast(0.dp)
 
-        // ---- EMPTY STATE ---- (derrière la liste ; la carte player reste au-dessus)
-        if (songs.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                emptyContent()
-            }
-        }
+        val expand: () -> Unit = { scope.launch { state.animateTo(PlayerSheetValue.Expanded) } }
 
-        // ---- LISTE ----
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 12.dp,
-                end = 12.dp,
-                top = 12.dp,
-                bottom = collapsedHeight + bottomInsetDp + 12.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            itemsIndexed(songs, key = { _, s -> s.uri.toString() }) { index, song ->
-                SongItem(song, song.uri == currentSong?.uri) {
-                    onSongClick(index)
-                    scope.launch { state.animateTo(PlayerSheetValue.Expanded) }
-                }
-            }
-        }
+        // ---- CONTENU (fond) ----
+        content(collapsedHeight + bottomInsetDp + 12.dp, expand)
 
         // ---- SCRIM ----
         if (progress > 0.02f) {
@@ -183,7 +161,7 @@ fun FloatingPlayerHost(
                     onNext = onNext,
                     onPrevious = onPrevious,
                     onClose = onClose,
-                    onExpand = { scope.launch { state.animateTo(PlayerSheetValue.Expanded) } }
+                    onExpand = expand
                 )
             } else {
                 FullPlayer(
@@ -194,7 +172,69 @@ fun FloatingPlayerHost(
                     onNext = onNext,
                     onPrevious = onPrevious,
                     onSeek = onSeek,
-                    onToggleFavorite = onToggleFavorite)
+                    onToggleFavorite = onToggleFavorite
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun FloatingPlayerHost(
+    modifier: Modifier = Modifier,
+    songs: ImmutableList<Song>,
+    currentSong: Song?,
+    currentIndex: Int,
+    isPlaying: Boolean,
+    sliderValue: Float,
+    onSongClick: (Int) -> Unit,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    onPlayPause: () -> Unit,
+    onSeek: (Float) -> Unit,
+    onClose: () -> Unit,
+    onToggleFavorite: (String, Boolean) -> Unit,
+    emptyContent: @Composable () -> Unit = {}
+) {
+    PlayerSheetScaffold(
+        modifier = modifier,
+        currentSong = currentSong,
+        isPlaying = isPlaying,
+        sliderValue = sliderValue,
+        onPrevious = onPrevious,
+        onNext = onNext,
+        onPlayPause = onPlayPause,
+        onSeek = onSeek,
+        onClose = onClose,
+        onToggleFavorite = onToggleFavorite,
+    ) { bottomContentPadding, expand ->
+        // ---- EMPTY STATE ---- (derrière la liste ; la carte player reste au-dessus)
+        if (songs.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                emptyContent()
+            }
+        }
+
+        // ---- LISTE ----
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 12.dp,
+                end = 12.dp,
+                top = 12.dp,
+                bottom = bottomContentPadding
+            ),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            itemsIndexed(songs, key = { _, s -> s.uri.toString() }) { index, song ->
+                SongItem(song, song.uri == currentSong?.uri) {
+                    onSongClick(index)
+                    expand()
+                }
             }
         }
     }
