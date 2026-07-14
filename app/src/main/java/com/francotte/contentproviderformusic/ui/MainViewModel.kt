@@ -10,6 +10,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.francotte.contentproviderformusic.data.UserDataRepository
 import com.francotte.contentproviderformusic.domain.FavoritesUseCase
+import com.francotte.contentproviderformusic.domain.PlaylistsUseCase
+import com.francotte.contentproviderformusic.model.Playlist
 import com.francotte.contentproviderformusic.model.Song
 import com.francotte.contentproviderformusic.repository.SongsFetcherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +35,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
-    favoritesUseCase: FavoritesUseCase
+    favoritesUseCase: FavoritesUseCase,
+    playlistsUseCase: PlaylistsUseCase,
 ) : ViewModel() {
 
     private val _permissionsGranted = MutableStateFlow(false)
@@ -61,6 +64,9 @@ class MainViewModel @Inject constructor(
     }
 
     val favoritesSongs = favoritesUseCase.invoke().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), persistentListOf())
+
+    val playlists: StateFlow<List<Playlist>> = playlistsUseCase.playlists
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Liste complète des chansons, avec l'état favori dérivé des préférences persistées.
     // C'est cette liste (et non SongsFetcherRepository.songs brute) qui doit alimenter l'UI
@@ -104,6 +110,30 @@ class MainViewModel @Inject constructor(
     fun updateFavoritesSongs(songTitle: String, isFavorite: Boolean) {
         viewModelScope.launch {
             userDataRepository.setFavoritesSongs(songTitle, isFavorite)
+        }
+    }
+
+    fun createPlaylist(id: Long, title: String, description: String) {
+        viewModelScope.launch {
+            userDataRepository.createPlaylist(id, title, description)
+        }
+    }
+
+    fun deletePlaylists(ids: Set<Long>) {
+        viewModelScope.launch {
+            ids.forEach { userDataRepository.deletePlaylist(it) }
+        }
+    }
+
+    fun addSongToPlaylist(playlistId: Long, songTitle: String) {
+        viewModelScope.launch {
+            userDataRepository.addSongToPlaylist(playlistId, songTitle)
+        }
+    }
+
+    fun removeSongFromPlaylist(playlistId: Long, songTitle: String) {
+        viewModelScope.launch {
+            userDataRepository.removeSongFromPlaylist(playlistId, songTitle)
         }
     }
 
