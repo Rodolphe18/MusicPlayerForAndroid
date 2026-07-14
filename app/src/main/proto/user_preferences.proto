@@ -7,4 +7,13 @@ message UserPreferences {
 
   map<string, bool> favorite_titles = 1;
 
+  repeated Playlist playlists = 2;
+
+}
+
+message Playlist {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  repeated string song_titles = 4;   // clé = Song.title, comme les favoris
 }
