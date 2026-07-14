@@ -73,7 +73,7 @@ class MusicAppState(val navController: NavHostController) {
             return persistentListOf(
                 TopLevelDestination.LIBRARY,
                 TopLevelDestination.FAVORITES,
-            //    TopLevelDestination.PLAYLISTS
+                TopLevelDestination.PLAYLISTS,
             )
         }
 
@@ -86,7 +86,7 @@ class MusicAppState(val navController: NavHostController) {
             return when (currentRoute) {
                 LIBRARY_ROUTE -> TopLevelDestination.LIBRARY
                 FAVORITES_ROUTE -> TopLevelDestination.FAVORITES
-              //  PLAYLISTS_ROUTE -> TopLevelDestination.PLAYLISTS
+                PLAYLISTS_ROUTE -> TopLevelDestination.PLAYLISTS
                 else -> null
             }
         }
@@ -100,7 +100,7 @@ class MusicAppState(val navController: NavHostController) {
         when (topLevelDestination) {
             is TopLevelDestination.LIBRARY -> navController.navigateToLibraryScreen(topLevelNavOptions)
             is TopLevelDestination.FAVORITES -> navController.navigateToFavoritesScreen(topLevelNavOptions)
-       //     is TopLevelDestination.PLAYLISTS -> navController.navigateToPlayListsScreen(topLevelNavOptions)
+            is TopLevelDestination.PLAYLISTS -> navController.navigateToPlayListsScreen(topLevelNavOptions)
         }
     }
 

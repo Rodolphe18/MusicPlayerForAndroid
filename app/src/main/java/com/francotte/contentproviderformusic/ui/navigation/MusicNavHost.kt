@@ -9,6 +9,7 @@ import com.francotte.contentproviderformusic.ui.composable.LIBRARY_ROUTE
 import com.francotte.contentproviderformusic.ui.favorites.favoritesScreen
 import com.francotte.contentproviderformusic.ui.state.MusicAppState
 import com.francotte.contentproviderformusic.ui.library.libraryScreen
+import com.francotte.contentproviderformusic.ui.playlists.playlistsGraph
 
 @Composable
 fun MusicNavHost(
@@ -41,6 +42,8 @@ fun MusicNavHost(
             isPlaying,
             currentIndex,
             currentDuration)
+
+        playlistsGraph(appState, mainViewModel)
 
     }
 }

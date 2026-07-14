@@ -26,11 +26,11 @@ sealed class TopLevelDestination(
         FAVORITES_ROUTE
     )
 
-//    data object PLAYLISTS : TopLevelDestination(
-//        R.drawable.ic_playlist_play,
-//        R.string.playlists,
-//        PLAYLISTS_ROUTE
-//    )
+    data object PLAYLISTS : TopLevelDestination(
+        R.drawable.playlist_icon,
+        R.string.playlists,
+        PLAYLISTS_ROUTE
+    )
 
 }
 
