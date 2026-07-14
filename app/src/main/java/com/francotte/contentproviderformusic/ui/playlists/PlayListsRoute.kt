@@ -77,4 +77,20 @@ fun NavGraphBuilder.playlistsGraph(
             onRemoveSong = { songTitle -> mainViewModel.removeSongFromPlaylist(playlistId, songTitle) },
         )
     }
+
+    composable(
+        route = "$PLAYLIST_ADD_SONGS_ROUTE/{$PLAYLIST_ID_ARG}",
+        arguments = listOf(navArgument(PLAYLIST_ID_ARG) { type = NavType.LongType }),
+    ) { backStackEntry ->
+        val playlistId = backStackEntry.arguments?.getLong(PLAYLIST_ID_ARG) ?: return@composable
+        val playlists by mainViewModel.playlists.collectAsStateWithLifecycle()
+        val allSongs by mainViewModel.songs.collectAsStateWithLifecycle()
+        val addedTitles = playlists.find { it.id == playlistId }?.songTitles ?: emptySet()
+        PlaylistAddSongsScreen(
+            songs = allSongs,
+            addedTitles = addedTitles,
+            onBack = { appState.navController.popBackStack() },
+            onAdd = { songTitle -> mainViewModel.addSongToPlaylist(playlistId, songTitle) },
+        )
+    }
 }
