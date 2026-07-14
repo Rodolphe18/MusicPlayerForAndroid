@@ -3,9 +3,6 @@ package com.francotte.contentproviderformusic.service
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -31,21 +28,6 @@ class MusicService : MediaSessionService() {
     private lateinit var session: MediaSession
 
     private val channelId = "playback"
-
-
-    val bluetoothManager: BluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
-    
-    val d = bluetoothManager.adapter
-
-        val s = d.bluetoothLeScanner
-    
-    val bluetoothGattCallback = object : BluetoothGattCallback() {
-        override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
-            super.onConnectionStateChange(gatt, status, newState)
-
-        }
-    }
-
 
 
     override fun onCreate() {
