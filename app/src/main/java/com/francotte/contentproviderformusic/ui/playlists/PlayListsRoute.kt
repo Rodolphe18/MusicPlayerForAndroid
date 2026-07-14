@@ -34,6 +34,7 @@ fun NavGraphBuilder.playlistsGraph(
             playlists = playlists,
             onCreateClick = { appState.navController.navigateToPlaylistCreate() },
             onPlaylistClick = { id -> appState.navController.navigateToPlaylistDetail(id) },
+            onDeletePlaylists = { ids -> mainViewModel.deletePlaylists(ids) },
         )
     }
 }
