@@ -1,11 +1,15 @@
 package com.francotte.contentproviderformusic.ui.playlists
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.francotte.contentproviderformusic.domain.resolveByTitle
 import com.francotte.contentproviderformusic.ui.MainViewModel
 import com.francotte.contentproviderformusic.ui.composable.PLAYLISTS_ROUTE
 import com.francotte.contentproviderformusic.ui.state.MusicAppState
@@ -48,6 +52,29 @@ fun NavGraphBuilder.playlistsGraph(
                     popUpTo(PLAYLIST_CREATE_ROUTE) { inclusive = true }
                 }
             },
+        )
+    }
+
+    composable(
+        route = "$PLAYLIST_DETAIL_ROUTE/{$PLAYLIST_ID_ARG}",
+        arguments = listOf(navArgument(PLAYLIST_ID_ARG) { type = NavType.LongType }),
+    ) { backStackEntry ->
+        val playlistId = backStackEntry.arguments?.getLong(PLAYLIST_ID_ARG) ?: return@composable
+        val playlists by mainViewModel.playlists.collectAsStateWithLifecycle()
+        val allSongs by mainViewModel.songs.collectAsStateWithLifecycle()
+        val currentSong by mainViewModel.currentPlayingSong.collectAsStateWithLifecycle()
+        val playlist = playlists.find { it.id == playlistId }
+        val playlistSongs = remember(playlist, allSongs) {
+            playlist?.let { resolveByTitle(it.songTitles, allSongs) { s -> s.title } } ?: emptyList()
+        }
+        PlaylistDetailScreen(
+            playlist = playlist,
+            songs = playlistSongs,
+            currentSong = currentSong,
+            onBack = { appState.navController.popBackStack() },
+            onAddSongsClick = { appState.navController.navigateToPlaylistAddSongs(playlistId) },
+            onPlay = { list, index -> mainViewModel.playFromList(list, index) },
+            onRemoveSong = { songTitle -> mainViewModel.removeSongFromPlaylist(playlistId, songTitle) },
         )
     }
 }
