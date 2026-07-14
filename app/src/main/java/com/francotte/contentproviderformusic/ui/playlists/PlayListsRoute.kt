@@ -1,11 +1,7 @@
 package com.francotte.contentproviderformusic.ui.playlists
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
@@ -32,9 +28,12 @@ fun NavGraphBuilder.playlistsGraph(
     mainViewModel: MainViewModel,
 ) {
     composable(route = PLAYLISTS_ROUTE) {
-        // Placeholder — remplacé en Task 8.
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Playlists")
-        }
+        val playlists by mainViewModel.playlists.collectAsStateWithLifecycle()
+        PlaylistsScreen(
+            appState = appState,
+            playlists = playlists,
+            onCreateClick = { appState.navController.navigateToPlaylistCreate() },
+            onPlaylistClick = { id -> appState.navController.navigateToPlaylistDetail(id) },
+        )
     }
 }
