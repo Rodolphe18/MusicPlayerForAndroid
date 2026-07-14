@@ -37,4 +37,17 @@ fun NavGraphBuilder.playlistsGraph(
             onDeletePlaylists = { ids -> mainViewModel.deletePlaylists(ids) },
         )
     }
+
+    composable(route = PLAYLIST_CREATE_ROUTE) {
+        PlaylistCreateScreen(
+            onBack = { appState.navController.popBackStack() },
+            onCreate = { title, description ->
+                val id = System.currentTimeMillis()
+                mainViewModel.createPlaylist(id, title, description)
+                appState.navController.navigate("$PLAYLIST_DETAIL_ROUTE/$id") {
+                    popUpTo(PLAYLIST_CREATE_ROUTE) { inclusive = true }
+                }
+            },
+        )
+    }
 }
