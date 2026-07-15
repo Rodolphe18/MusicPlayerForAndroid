@@ -8,89 +8,83 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.francotte.contentproviderformusic.R
 
-// Corps & UI : Manrope (sans géométrique moderne, très lisible).
-val Manrope = FontFamily(
-    Font(R.font.manrope_light, FontWeight.Light),
-    Font(R.font.manrope_regular, FontWeight.Normal),
-    Font(R.font.manrope_medium, FontWeight.Medium),
-    Font(R.font.manrope_semibold, FontWeight.SemiBold),
-    Font(R.font.manrope_bold, FontWeight.Bold),
+// Police unique de l'app : Poppins (sans géométrique arrondi). Titres en gras/extra-gras
+// « chunky », corps en normal/medium — dans l'esprit des captures.
+val Poppins = FontFamily(
+    Font(R.font.poppins_light, FontWeight.Light),
+    Font(R.font.poppins_regular, FontWeight.Normal),
+    Font(R.font.poppins_medium, FontWeight.Medium),
+    Font(R.font.poppins_semibold, FontWeight.SemiBold),
+    Font(R.font.poppins_bold, FontWeight.Bold),
+    Font(R.font.poppins_extrabold, FontWeight.ExtraBold),
+    Font(R.font.poppins_black, FontWeight.Black),
 )
 
-// Titres & accents : Space Grotesk (caractère techy, matche le thème Aurora).
-val SpaceGrotesk = FontFamily(
-    Font(R.font.spacegrotesk_light, FontWeight.Light),
-    Font(R.font.spacegrotesk_regular, FontWeight.Normal),
-    Font(R.font.spacegrotesk_medium, FontWeight.Medium),
-    Font(R.font.spacegrotesk_semibold, FontWeight.SemiBold),
-    Font(R.font.spacegrotesk_bold, FontWeight.Bold),
-)
-
-// Type scale Material 3, avec Space Grotesk sur les gros titres et Manrope sur le corps.
+// Type scale Material 3 sur Poppins : gras marqués sur display/headline/title.
 val Typography = Typography(
-    // ---- Display : gros titres (Space Grotesk) ----
+    // ---- Display : gros titres, très gras (façon "Bibliothèque") ----
     displayLarge = TextStyle(
-        fontFamily = SpaceGrotesk, fontWeight = FontWeight.SemiBold,
-        fontSize = 57.sp, lineHeight = 64.sp, letterSpacing = (-0.25).sp
+        fontFamily = Poppins, fontWeight = FontWeight.ExtraBold,
+        fontSize = 57.sp, lineHeight = 64.sp, letterSpacing = (-0.5).sp
     ),
     displayMedium = TextStyle(
-        fontFamily = SpaceGrotesk, fontWeight = FontWeight.SemiBold,
-        fontSize = 45.sp, lineHeight = 52.sp, letterSpacing = 0.sp
+        fontFamily = Poppins, fontWeight = FontWeight.ExtraBold,
+        fontSize = 45.sp, lineHeight = 52.sp, letterSpacing = (-0.25).sp
     ),
     displaySmall = TextStyle(
-        fontFamily = SpaceGrotesk, fontWeight = FontWeight.SemiBold,
+        fontFamily = Poppins, fontWeight = FontWeight.ExtraBold,
         fontSize = 36.sp, lineHeight = 44.sp, letterSpacing = 0.sp
     ),
-    // ---- Headline (Space Grotesk) ----
+    // ---- Headline ----
     headlineLarge = TextStyle(
-        fontFamily = SpaceGrotesk, fontWeight = FontWeight.SemiBold,
+        fontFamily = Poppins, fontWeight = FontWeight.ExtraBold,
         fontSize = 32.sp, lineHeight = 40.sp, letterSpacing = 0.sp
     ),
     headlineMedium = TextStyle(
-        fontFamily = SpaceGrotesk, fontWeight = FontWeight.SemiBold,
+        fontFamily = Poppins, fontWeight = FontWeight.Bold,
         fontSize = 28.sp, lineHeight = 36.sp, letterSpacing = 0.sp
     ),
     headlineSmall = TextStyle(
-        fontFamily = SpaceGrotesk, fontWeight = FontWeight.Medium,
+        fontFamily = Poppins, fontWeight = FontWeight.Bold,
         fontSize = 24.sp, lineHeight = 32.sp, letterSpacing = 0.sp
     ),
-    // ---- Title : titres de sections / d'items (Space Grotesk) ----
+    // ---- Title : titres de sections / d'items ----
     titleLarge = TextStyle(
-        fontFamily = SpaceGrotesk, fontWeight = FontWeight.SemiBold,
+        fontFamily = Poppins, fontWeight = FontWeight.Bold,
         fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
-        fontFamily = SpaceGrotesk, fontWeight = FontWeight.Medium,
+        fontFamily = Poppins, fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp, lineHeight = 24.sp, letterSpacing = 0.15.sp
     ),
     titleSmall = TextStyle(
-        fontFamily = SpaceGrotesk, fontWeight = FontWeight.Medium,
+        fontFamily = Poppins, fontWeight = FontWeight.SemiBold,
         fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.1.sp
     ),
-    // ---- Body : texte courant (Manrope) ----
+    // ---- Body : texte courant ----
     bodyLarge = TextStyle(
-        fontFamily = Manrope, fontWeight = FontWeight.Normal,
+        fontFamily = Poppins, fontWeight = FontWeight.Normal,
         fontSize = 16.sp, lineHeight = 24.sp, letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
-        fontFamily = Manrope, fontWeight = FontWeight.Normal,
+        fontFamily = Poppins, fontWeight = FontWeight.Normal,
         fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.25.sp
     ),
     bodySmall = TextStyle(
-        fontFamily = Manrope, fontWeight = FontWeight.Normal,
+        fontFamily = Poppins, fontWeight = FontWeight.Normal,
         fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.4.sp
     ),
-    // ---- Label : boutons, puces, légendes (Manrope) ----
+    // ---- Label : boutons, puces, légendes ----
     labelLarge = TextStyle(
-        fontFamily = Manrope, fontWeight = FontWeight.Medium,
+        fontFamily = Poppins, fontWeight = FontWeight.SemiBold,
         fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.1.sp
     ),
     labelMedium = TextStyle(
-        fontFamily = Manrope, fontWeight = FontWeight.Medium,
+        fontFamily = Poppins, fontWeight = FontWeight.Medium,
         fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.5.sp
     ),
     labelSmall = TextStyle(
-        fontFamily = Manrope, fontWeight = FontWeight.Medium,
+        fontFamily = Poppins, fontWeight = FontWeight.Medium,
         fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 0.5.sp
     ),
 )
