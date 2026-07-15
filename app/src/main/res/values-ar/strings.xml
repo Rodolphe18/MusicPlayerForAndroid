@@ -1,0 +1,65 @@
+<resources>
+    <string name="app_name">مشغل الموسيقى</string>
+
+    <!-- Bottom navigation -->
+    <string name="library">المكتبة</string>
+    <string name="favorites">المفضلة</string>
+    <string name="playlists">قوائم التشغيل</string>
+
+    <!-- Common content descriptions -->
+    <string name="cd_back">رجوع</string>
+    <string name="cd_settings">الإعدادات</string>
+
+    <!-- Permissions (toasts) -->
+    <string name="permissions_granted">تم منح جميع الأذونات</string>
+    <string name="permissions_denied">تم رفض بعض الأذونات</string>
+
+    <!-- Library / search -->
+    <string name="cd_search">بحث</string>
+    <string name="cd_close_search">إغلاق البحث</string>
+    <string name="cd_clear">مسح</string>
+    <string name="search_hint">ابحث عن أغنية…</string>
+    <string name="search_no_results_title">لا توجد نتائج</string>
+    <string name="search_no_results_subtitle">لا توجد أغنية تطابق \"%1$s\".</string>
+
+    <!-- Favorites -->
+    <string name="favorites_empty_title">لا توجد مفضلات بعد</string>
+    <string name="favorites_empty_subtitle">انقر على القلب في أغنية لإضافتها إلى المفضلة.</string>
+
+    <!-- Playlists list -->
+    <string name="playlists_title">قوائم التشغيل الخاصة بي</string>
+    <string name="playlist_song_count">%1$d أغنية</string>
+    <string name="playlists_empty_title">لا توجد قوائم تشغيل بعد</string>
+    <string name="playlists_empty_subtitle">أنشئ قائمة التشغيل الأولى لتجميع أغانيك المفضلة.</string>
+    <string name="create_playlist">إنشاء قائمة تشغيل</string>
+
+    <!-- Playlist create -->
+    <string name="create_playlist_title">قائمة تشغيل جديدة</string>
+    <string name="playlist_name_label">الاسم</string>
+    <string name="playlist_name_hint">اسم قائمة التشغيل</string>
+    <string name="playlist_description_label">الوصف</string>
+    <string name="playlist_description_hint">صف قائمة التشغيل الخاصة بك…</string>
+    <string name="create">إنشاء</string>
+
+    <!-- Playlist detail / add songs -->
+    <string name="add_songs">إضافة أغانٍ</string>
+    <string name="cd_already_added">مضافة بالفعل</string>
+    <string name="cd_add">إضافة</string>
+
+    <!-- Selection bar -->
+    <string name="selection_count">تم تحديد %1$d</string>
+    <string name="cd_delete">حذف</string>
+
+    <!-- Settings -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_playback">التشغيل</string>
+    <string name="settings_autoplay">التشغيل التلقائي عند البدء</string>
+    <string name="settings_privacy">الخصوصية</string>
+    <string name="settings_privacy_policy">سياسة الخصوصية</string>
+    <string name="settings_privacy_options">خيارات الخصوصية</string>
+    <string name="settings_about">حول</string>
+    <string name="settings_about_version">%1$s • الإصدار %2$s</string>
+    <string name="settings_contact">اتصل بنا</string>
+    <string name="settings_oss_licenses">تراخيص المصدر المفتوح</string>
+    <string name="close">إغلاق</string>
+</resources>

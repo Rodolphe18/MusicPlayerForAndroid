@@ -1,0 +1,65 @@
+<resources>
+    <string name="app_name">音乐播放器</string>
+
+    <!-- Bottom navigation -->
+    <string name="library">音乐库</string>
+    <string name="favorites">收藏</string>
+    <string name="playlists">播放列表</string>
+
+    <!-- Common content descriptions -->
+    <string name="cd_back">返回</string>
+    <string name="cd_settings">设置</string>
+
+    <!-- Permissions (toasts) -->
+    <string name="permissions_granted">已授予所有权限</string>
+    <string name="permissions_denied">部分权限被拒绝</string>
+
+    <!-- Library / search -->
+    <string name="cd_search">搜索</string>
+    <string name="cd_close_search">关闭搜索</string>
+    <string name="cd_clear">清除</string>
+    <string name="search_hint">搜索歌曲…</string>
+    <string name="search_no_results_title">无结果</string>
+    <string name="search_no_results_subtitle">没有与 \"%1$s\" 匹配的歌曲。</string>
+
+    <!-- Favorites -->
+    <string name="favorites_empty_title">还没有收藏</string>
+    <string name="favorites_empty_subtitle">点按歌曲上的爱心即可添加到收藏。</string>
+
+    <!-- Playlists list -->
+    <string name="playlists_title">我的播放列表</string>
+    <string name="playlist_song_count">%1$d 首歌曲</string>
+    <string name="playlists_empty_title">还没有播放列表</string>
+    <string name="playlists_empty_subtitle">创建你的第一个播放列表，收藏你喜爱的歌曲。</string>
+    <string name="create_playlist">创建播放列表</string>
+
+    <!-- Playlist create -->
+    <string name="create_playlist_title">新建播放列表</string>
+    <string name="playlist_name_label">名称</string>
+    <string name="playlist_name_hint">播放列表名称</string>
+    <string name="playlist_description_label">描述</string>
+    <string name="playlist_description_hint">描述你的播放列表…</string>
+    <string name="create">创建</string>
+
+    <!-- Playlist detail / add songs -->
+    <string name="add_songs">添加歌曲</string>
+    <string name="cd_already_added">已添加</string>
+    <string name="cd_add">添加</string>
+
+    <!-- Selection bar -->
+    <string name="selection_count">已选择 %1$d 项</string>
+    <string name="cd_delete">删除</string>
+
+    <!-- Settings -->
+    <string name="settings_title">设置</string>
+    <string name="settings_playback">播放</string>
+    <string name="settings_autoplay">启动时自动播放</string>
+    <string name="settings_privacy">隐私</string>
+    <string name="settings_privacy_policy">隐私政策</string>
+    <string name="settings_privacy_options">隐私选项</string>
+    <string name="settings_about">关于</string>
+    <string name="settings_about_version">%1$s • 版本 %2$s</string>
+    <string name="settings_contact">联系我们</string>
+    <string name="settings_oss_licenses">开源许可</string>
+    <string name="close">关闭</string>
+</resources>

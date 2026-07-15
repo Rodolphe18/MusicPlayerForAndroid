@@ -1,0 +1,65 @@
+<resources>
+    <string name="app_name">Lecteur de musique</string>
+
+    <!-- Bottom navigation -->
+    <string name="library">Bibliothèque</string>
+    <string name="favorites">Favoris</string>
+    <string name="playlists">Playlists</string>
+
+    <!-- Common content descriptions -->
+    <string name="cd_back">Retour</string>
+    <string name="cd_settings">Réglages</string>
+
+    <!-- Permissions (toasts) -->
+    <string name="permissions_granted">Toutes les autorisations sont accordées</string>
+    <string name="permissions_denied">Certaines autorisations ont été refusées</string>
+
+    <!-- Library / search -->
+    <string name="cd_search">Rechercher</string>
+    <string name="cd_close_search">Fermer la recherche</string>
+    <string name="cd_clear">Effacer</string>
+    <string name="search_hint">Rechercher un titre…</string>
+    <string name="search_no_results_title">Aucun résultat</string>
+    <string name="search_no_results_subtitle">Aucun titre ne correspond à « %1$s ».</string>
+
+    <!-- Favorites -->
+    <string name="favorites_empty_title">Aucun favori</string>
+    <string name="favorites_empty_subtitle">Appuyez sur le cœur d\'un titre pour l\'ajouter à vos favoris.</string>
+
+    <!-- Playlists list -->
+    <string name="playlists_title">Mes playlists</string>
+    <string name="playlist_song_count">%1$d titre(s)</string>
+    <string name="playlists_empty_title">Aucune playlist</string>
+    <string name="playlists_empty_subtitle">Créez votre première playlist pour rassembler vos titres préférés.</string>
+    <string name="create_playlist">Créer une playlist</string>
+
+    <!-- Playlist create -->
+    <string name="create_playlist_title">Nouvelle playlist</string>
+    <string name="playlist_name_label">Nom</string>
+    <string name="playlist_name_hint">Nom de la playlist</string>
+    <string name="playlist_description_label">Description</string>
+    <string name="playlist_description_hint">Décrivez votre playlist…</string>
+    <string name="create">Créer</string>
+
+    <!-- Playlist detail / add songs -->
+    <string name="add_songs">Ajouter des titres</string>
+    <string name="cd_already_added">Déjà ajouté</string>
+    <string name="cd_add">Ajouter</string>
+
+    <!-- Selection bar -->
+    <string name="selection_count">%1$d sélectionné(s)</string>
+    <string name="cd_delete">Supprimer</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Réglages</string>
+    <string name="settings_playback">Lecture</string>
+    <string name="settings_autoplay">Lecture auto au démarrage</string>
+    <string name="settings_privacy">Confidentialité</string>
+    <string name="settings_privacy_policy">Politique de confidentialité</string>
+    <string name="settings_privacy_options">Options de confidentialité</string>
+    <string name="settings_about">À propos</string>
+    <string name="settings_about_version">%1$s • version %2$s</string>
+    <string name="settings_contact">Nous contacter</string>
+    <string name="settings_oss_licenses">Licences open source</string>
+    <string name="close">Fermer</string>
+</resources>

@@ -1,0 +1,65 @@
+<resources>
+    <string name="app_name">Reprodutor de música</string>
+
+    <!-- Bottom navigation -->
+    <string name="library">Biblioteca</string>
+    <string name="favorites">Favoritos</string>
+    <string name="playlists">Listas</string>
+
+    <!-- Common content descriptions -->
+    <string name="cd_back">Voltar</string>
+    <string name="cd_settings">Configurações</string>
+
+    <!-- Permissions (toasts) -->
+    <string name="permissions_granted">Todas as permissões concedidas</string>
+    <string name="permissions_denied">Algumas permissões foram negadas</string>
+
+    <!-- Library / search -->
+    <string name="cd_search">Pesquisar</string>
+    <string name="cd_close_search">Fechar pesquisa</string>
+    <string name="cd_clear">Limpar</string>
+    <string name="search_hint">Pesquisar uma música…</string>
+    <string name="search_no_results_title">Sem resultados</string>
+    <string name="search_no_results_subtitle">Nenhuma música corresponde a \"%1$s\".</string>
+
+    <!-- Favorites -->
+    <string name="favorites_empty_title">Ainda não há favoritos</string>
+    <string name="favorites_empty_subtitle">Toque no coração de uma música para adicioná-la aos favoritos.</string>
+
+    <!-- Playlists list -->
+    <string name="playlists_title">Minhas listas</string>
+    <string name="playlist_song_count">%1$d música(s)</string>
+    <string name="playlists_empty_title">Ainda não há listas</string>
+    <string name="playlists_empty_subtitle">Crie sua primeira lista para reunir suas músicas favoritas.</string>
+    <string name="create_playlist">Criar uma lista</string>
+
+    <!-- Playlist create -->
+    <string name="create_playlist_title">Nova lista</string>
+    <string name="playlist_name_label">Nome</string>
+    <string name="playlist_name_hint">Nome da lista</string>
+    <string name="playlist_description_label">Descrição</string>
+    <string name="playlist_description_hint">Descreva sua lista…</string>
+    <string name="create">Criar</string>
+
+    <!-- Playlist detail / add songs -->
+    <string name="add_songs">Adicionar músicas</string>
+    <string name="cd_already_added">Já adicionada</string>
+    <string name="cd_add">Adicionar</string>
+
+    <!-- Selection bar -->
+    <string name="selection_count">%1$d selecionada(s)</string>
+    <string name="cd_delete">Excluir</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Configurações</string>
+    <string name="settings_playback">Reprodução</string>
+    <string name="settings_autoplay">Reprodução automática ao iniciar</string>
+    <string name="settings_privacy">Privacidade</string>
+    <string name="settings_privacy_policy">Política de privacidade</string>
+    <string name="settings_privacy_options">Opções de privacidade</string>
+    <string name="settings_about">Sobre</string>
+    <string name="settings_about_version">%1$s • versão %2$s</string>
+    <string name="settings_contact">Fale conosco</string>
+    <string name="settings_oss_licenses">Licenças de código aberto</string>
+    <string name="close">Fechar</string>
+</resources>

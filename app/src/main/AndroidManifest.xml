@@ -13,12 +13,19 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/ic_launcher_icon"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/ic_launcher_icon"
+        android:localeConfig="@xml/locales_config"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ContentProviderForMusic"
         tools:targetApi="31">
+
+        <!-- App ID AdMob : requis, sinon MobileAds.initialize fait crasher l'app au démarrage. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-8828725570000941~7866594296" />
+
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
@@ -30,6 +37,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Écrans des licences open source : thème AppCompat requis (voir themes.xml). -->
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesMenuActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ContentProviderForMusic.OssLicenses" />
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ContentProviderForMusic.OssLicenses" />
+
         <service
             android:name=".service.MusicService"
             android:exported="false"

@@ -1,0 +1,65 @@
+<resources>
+    <string name="app_name">뮤직 플레이어</string>
+
+    <!-- Bottom navigation -->
+    <string name="library">라이브러리</string>
+    <string name="favorites">즐겨찾기</string>
+    <string name="playlists">재생목록</string>
+
+    <!-- Common content descriptions -->
+    <string name="cd_back">뒤로</string>
+    <string name="cd_settings">설정</string>
+
+    <!-- Permissions (toasts) -->
+    <string name="permissions_granted">모든 권한이 허용되었습니다</string>
+    <string name="permissions_denied">일부 권한이 거부되었습니다</string>
+
+    <!-- Library / search -->
+    <string name="cd_search">검색</string>
+    <string name="cd_close_search">검색 닫기</string>
+    <string name="cd_clear">지우기</string>
+    <string name="search_hint">노래 검색…</string>
+    <string name="search_no_results_title">결과 없음</string>
+    <string name="search_no_results_subtitle">\"%1$s\"과(와) 일치하는 노래가 없습니다.</string>
+
+    <!-- Favorites -->
+    <string name="favorites_empty_title">즐겨찾기가 없습니다</string>
+    <string name="favorites_empty_subtitle">노래의 하트를 눌러 즐겨찾기에 추가하세요.</string>
+
+    <!-- Playlists list -->
+    <string name="playlists_title">내 재생목록</string>
+    <string name="playlist_song_count">곡 %1$d개</string>
+    <string name="playlists_empty_title">재생목록이 없습니다</string>
+    <string name="playlists_empty_subtitle">첫 재생목록을 만들어 좋아하는 노래를 모아보세요.</string>
+    <string name="create_playlist">재생목록 만들기</string>
+
+    <!-- Playlist create -->
+    <string name="create_playlist_title">새 재생목록</string>
+    <string name="playlist_name_label">이름</string>
+    <string name="playlist_name_hint">재생목록 이름</string>
+    <string name="playlist_description_label">설명</string>
+    <string name="playlist_description_hint">재생목록을 설명하세요…</string>
+    <string name="create">만들기</string>
+
+    <!-- Playlist detail / add songs -->
+    <string name="add_songs">노래 추가</string>
+    <string name="cd_already_added">이미 추가됨</string>
+    <string name="cd_add">추가</string>
+
+    <!-- Selection bar -->
+    <string name="selection_count">%1$d개 선택됨</string>
+    <string name="cd_delete">삭제</string>
+
+    <!-- Settings -->
+    <string name="settings_title">설정</string>
+    <string name="settings_playback">재생</string>
+    <string name="settings_autoplay">시작 시 자동 재생</string>
+    <string name="settings_privacy">개인정보 보호</string>
+    <string name="settings_privacy_policy">개인정보 처리방침</string>
+    <string name="settings_privacy_options">개인정보 옵션</string>
+    <string name="settings_about">정보</string>
+    <string name="settings_about_version">%1$s • 버전 %2$s</string>
+    <string name="settings_contact">문의하기</string>
+    <string name="settings_oss_licenses">오픈소스 라이선스</string>
+    <string name="close">닫기</string>
+</resources>

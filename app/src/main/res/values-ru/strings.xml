@@ -1,0 +1,65 @@
+<resources>
+    <string name="app_name">Музыкальный плеер</string>
+
+    <!-- Bottom navigation -->
+    <string name="library">Библиотека</string>
+    <string name="favorites">Избранное</string>
+    <string name="playlists">Плейлисты</string>
+
+    <!-- Common content descriptions -->
+    <string name="cd_back">Назад</string>
+    <string name="cd_settings">Настройки</string>
+
+    <!-- Permissions (toasts) -->
+    <string name="permissions_granted">Все разрешения предоставлены</string>
+    <string name="permissions_denied">Некоторые разрешения отклонены</string>
+
+    <!-- Library / search -->
+    <string name="cd_search">Поиск</string>
+    <string name="cd_close_search">Закрыть поиск</string>
+    <string name="cd_clear">Очистить</string>
+    <string name="search_hint">Поиск песни…</string>
+    <string name="search_no_results_title">Ничего не найдено</string>
+    <string name="search_no_results_subtitle">Нет песен по запросу \"%1$s\".</string>
+
+    <!-- Favorites -->
+    <string name="favorites_empty_title">Пока нет избранного</string>
+    <string name="favorites_empty_subtitle">Нажмите на сердечко у песни, чтобы добавить её в избранное.</string>
+
+    <!-- Playlists list -->
+    <string name="playlists_title">Мои плейлисты</string>
+    <string name="playlist_song_count">%1$d трек(ов)</string>
+    <string name="playlists_empty_title">Пока нет плейлистов</string>
+    <string name="playlists_empty_subtitle">Создайте свой первый плейлист, чтобы собрать любимые песни.</string>
+    <string name="create_playlist">Создать плейлист</string>
+
+    <!-- Playlist create -->
+    <string name="create_playlist_title">Новый плейлист</string>
+    <string name="playlist_name_label">Название</string>
+    <string name="playlist_name_hint">Название плейлиста</string>
+    <string name="playlist_description_label">Описание</string>
+    <string name="playlist_description_hint">Опишите свой плейлист…</string>
+    <string name="create">Создать</string>
+
+    <!-- Playlist detail / add songs -->
+    <string name="add_songs">Добавить песни</string>
+    <string name="cd_already_added">Уже добавлено</string>
+    <string name="cd_add">Добавить</string>
+
+    <!-- Selection bar -->
+    <string name="selection_count">Выбрано: %1$d</string>
+    <string name="cd_delete">Удалить</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_playback">Воспроизведение</string>
+    <string name="settings_autoplay">Автовоспроизведение при запуске</string>
+    <string name="settings_privacy">Конфиденциальность</string>
+    <string name="settings_privacy_policy">Политика конфиденциальности</string>
+    <string name="settings_privacy_options">Параметры конфиденциальности</string>
+    <string name="settings_about">О приложении</string>
+    <string name="settings_about_version">%1$s • версия %2$s</string>
+    <string name="settings_contact">Связаться с нами</string>
+    <string name="settings_oss_licenses">Лицензии с открытым исходным кодом</string>
+    <string name="close">Закрыть</string>
+</resources>
