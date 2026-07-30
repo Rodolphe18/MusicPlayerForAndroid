@@ -9,6 +9,11 @@ message UserPreferences {
 
   repeated Playlist playlists = 2;
 
+  // Inverse de "lecture auto au démarrage" : proto3 met false par défaut, ce qui
+  // correspond à l'auto-play ACTIVÉ (comportement historique). L'utilisateur passe
+  // ce champ à true pour désactiver le démarrage automatique.
+  bool autoplay_disabled = 3;
+
 }
 
 message Playlist {

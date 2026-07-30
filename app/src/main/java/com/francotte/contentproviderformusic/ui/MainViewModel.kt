@@ -1,5 +1,6 @@
 package com.francotte.contentproviderformusic.ui
 
+import android.app.Activity
 import androidx.annotation.OptIn
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,6 +9,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
+import com.francotte.contentproviderformusic.consent.ConsentManager
 import com.francotte.contentproviderformusic.data.UserDataRepository
 import com.francotte.contentproviderformusic.domain.FavoritesUseCase
 import com.francotte.contentproviderformusic.domain.PlaylistsUseCase
@@ -35,6 +37,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
+    private val consentManager: ConsentManager,
     favoritesUseCase: FavoritesUseCase,
     playlistsUseCase: PlaylistsUseCase,
 ) : ViewModel() {
@@ -42,7 +45,12 @@ class MainViewModel @Inject constructor(
     private val _permissionsGranted = MutableStateFlow(false)
     val permissionGranted = _permissionsGranted.asStateFlow()
     val isPlaying = MutableStateFlow(false)
+    val isRepeatOneEnabled = MutableStateFlow(false)
     val isLoading = MutableStateFlow(true)
+
+    // Maintient le splash screen affiché tant que l'interstitiel n'est pas apparu (ou résolu
+    // / timeout). Piloté depuis MainActivity, lu par la condition du splash screen.
+    val splashHold = MutableStateFlow(true)
     val currentDuration: MutableStateFlow<Float> = MutableStateFlow(0f)
     val currentIndex: MutableStateFlow<Int> = MutableStateFlow(0)
     var screenStatus = MutableStateFlow(ScreenStatus.MAIN_SCREEN)
@@ -61,12 +69,44 @@ class MainViewModel @Inject constructor(
             isPlaying.value = player.isPlaying
             currentIndex.value = player.currentMediaItemIndex
         }
+
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            isRepeatOneEnabled.value = repeatMode == Player.REPEAT_MODE_ONE
+        }
     }
 
     val favoritesSongs = favoritesUseCase.invoke().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), persistentListOf())
 
     val playlists: StateFlow<List<Playlist>> = playlistsUseCase.playlists
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Réglage "lecture auto au démarrage", persisté. Défaut true (comportement historique).
+    val autoPlayOnStartup: StateFlow<Boolean> = userDataRepository.userData
+        .map { it.autoPlayOnStartup }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setAutoPlayOnStartup(enabled: Boolean) {
+        viewModelScope.launch { userDataRepository.setAutoPlayOnStartup(enabled) }
+    }
+
+    // Écran "Ajouter à" lancé depuis le player : chanson cible (null = écran fermé).
+    private val _addToPlaylistSong = MutableStateFlow<Song?>(null)
+    val addToPlaylistSong: StateFlow<Song?> = _addToPlaylistSong.asStateFlow()
+
+    fun openAddToPlaylist() {
+        _addToPlaylistSong.value = currentPlayingSong.value
+    }
+
+    fun closeAddToPlaylist() {
+        _addToPlaylistSong.value = null
+    }
+
+    // Consentement publicitaire (RGPD) exposé aux Settings.
+    fun isPrivacyOptionsRequired(): Boolean = consentManager.isPrivacyOptionsRequired()
+
+    fun showPrivacyOptions(activity: Activity) {
+        viewModelScope.launch { consentManager.showPrivacyOptions(activity) }
+    }
 
     // Liste complète des chansons, avec l'état favori dérivé des préférences persistées.
     // C'est cette liste (et non SongsFetcherRepository.songs brute) qui doit alimenter l'UI
@@ -144,6 +184,7 @@ class MainViewModel @Inject constructor(
         ctrl.addListener(listener)
         startProgressUpdates()
         listener.onEvents(ctrl, Player.Events(FlagSet.Builder().build()))
+        isRepeatOneEnabled.value = ctrl.repeatMode == Player.REPEAT_MODE_ONE
         isLoading.value = false
     }
 
@@ -157,9 +198,20 @@ class MainViewModel @Inject constructor(
         _permissionsGranted.value = true
     }
 
+    fun releaseSplash() {
+        splashHold.value = false
+    }
+
     fun playPause() = controller?.let { if (it.isPlaying) it.pause() else it.play() }
     fun nextSong() = controller?.seekToNext()
     fun prevSong() = controller?.seekToPrevious()
+    fun toggleRepeatOne() = controller?.let { player ->
+        player.repeatMode = if (player.repeatMode == Player.REPEAT_MODE_ONE) {
+            Player.REPEAT_MODE_OFF
+        } else {
+            Player.REPEAT_MODE_ONE
+        }
+    }
     fun stopSong() = controller?.stop()
 
     fun onSeekBarValueChanged(progress: Float) =

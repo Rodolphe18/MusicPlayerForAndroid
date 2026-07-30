@@ -22,6 +22,10 @@
     <string name="search_no_results_title">결과 없음</string>
     <string name="search_no_results_subtitle">\"%1$s\"과(와) 일치하는 노래가 없습니다.</string>
 
+    <!-- Top bar screen titles -->
+    <string name="library_title">내 라이브러리</string>
+    <string name="favorites_title">즐겨찾기</string>
+
     <!-- Favorites -->
     <string name="favorites_empty_title">즐겨찾기가 없습니다</string>
     <string name="favorites_empty_subtitle">노래의 하트를 눌러 즐겨찾기에 추가하세요.</string>
@@ -43,6 +47,9 @@
 
     <!-- Playlist detail / add songs -->
     <string name="add_songs">노래 추가</string>
+    <string name="add_to_playlist_title">추가할 위치</string>
+    <string name="share_song">노래 공유</string>
+    <string name="cd_share">공유</string>
     <string name="cd_already_added">이미 추가됨</string>
     <string name="cd_add">추가</string>
 

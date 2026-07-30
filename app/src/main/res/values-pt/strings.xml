@@ -22,6 +22,10 @@
     <string name="search_no_results_title">Sem resultados</string>
     <string name="search_no_results_subtitle">Nenhuma música corresponde a \"%1$s\".</string>
 
+    <!-- Top bar screen titles -->
+    <string name="library_title">Minha biblioteca</string>
+    <string name="favorites_title">Meus favoritos</string>
+
     <!-- Favorites -->
     <string name="favorites_empty_title">Ainda não há favoritos</string>
     <string name="favorites_empty_subtitle">Toque no coração de uma música para adicioná-la aos favoritos.</string>
@@ -43,6 +47,9 @@
 
     <!-- Playlist detail / add songs -->
     <string name="add_songs">Adicionar músicas</string>
+    <string name="add_to_playlist_title">Adicionar a</string>
+    <string name="share_song">Compartilhar música</string>
+    <string name="cd_share">Compartilhar</string>
     <string name="cd_already_added">Já adicionada</string>
     <string name="cd_add">Adicionar</string>
 

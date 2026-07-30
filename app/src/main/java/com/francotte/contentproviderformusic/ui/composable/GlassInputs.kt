@@ -1,7 +1,6 @@
 package com.francotte.contentproviderformusic.ui.composable
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
@@ -34,10 +33,14 @@ fun GlassTextField(
     modifier: Modifier = Modifier,
     singleLine: Boolean = true,
     minHeight: Dp = 0.dp,
+    containerBrush: Brush? = null,
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    placeholderColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+    cursorColor: Color = Aurora.Purple,
 ) {
     val shape = RoundedCornerShape(18.dp)
-    // Une seule couleur (violet Aurora) avec un léger dégradé vertical, ton plus prononcé.
-    val glass = Brush.verticalGradient(
+    // Fond par défaut : corail Aurora en léger dégradé. Surchargeable via [containerBrush].
+    val background = containerBrush ?: Brush.verticalGradient(
         listOf(
             Aurora.Purple.copy(alpha = 0.26f),
             Aurora.Purple.copy(alpha = 0.15f),
@@ -47,15 +50,14 @@ fun GlassTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = singleLine,
-        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-        cursorBrush = SolidColor(Aurora.Purple),
+        textStyle = MaterialTheme.typography.bodyLarge.copy(color = textColor),
+        cursorBrush = SolidColor(cursorColor),
         modifier = modifier,
         decorationBox = { inner ->
             Box(
                 modifier = Modifier
                     .clip(shape)
-                    .background(glass)
-                    .border(1.dp, Aurora.Purple.copy(alpha = 0.30f), shape)
+                    .background(background)
                     .heightIn(min = minHeight)
                     .padding(horizontal = 16.dp, vertical = 14.dp),
                 contentAlignment = if (singleLine) Alignment.CenterStart else Alignment.TopStart,
@@ -63,7 +65,7 @@ fun GlassTextField(
                 if (value.isEmpty()) {
                     Text(
                         text = placeholder,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                        color = placeholderColor,
                         style = MaterialTheme.typography.bodyLarge,
                     )
                 }
@@ -73,7 +75,7 @@ fun GlassTextField(
     )
 }
 
-/** Bouton plein d'une seule couleur (violet Aurora) avec un léger dégradé. */
+/** Bouton corail soutenu quand il est actif, corail clair quand il est désactivé. */
 @Composable
 fun GradientButton(
     text: String,
@@ -83,10 +85,10 @@ fun GradientButton(
     horizontalPadding: Dp = 32.dp,
 ) {
     val shape = RoundedCornerShape(16.dp)
-    val brush = if (enabled) {
-        Brush.horizontalGradient(listOf(Color(0xFF4C3A9E), Color(0xFF362578)))
+    val brush: Brush = if (enabled) {
+        SolidColor(Aurora.Coral)
     } else {
-        Brush.horizontalGradient(listOf(Color(0xFFB9B4C7), Color(0xFFA7A2BC)))
+        SolidColor(Color(0xFFFFE1DE))
     }
     Box(
         modifier = modifier

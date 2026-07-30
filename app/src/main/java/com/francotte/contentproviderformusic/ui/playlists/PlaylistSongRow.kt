@@ -19,10 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.francotte.contentproviderformusic.model.Song
 import com.francotte.contentproviderformusic.ui.composable.ItemAlbumImage
+import com.francotte.contentproviderformusic.ui.composable.PlayingEqualizer
 import com.francotte.contentproviderformusic.ui.theme.Aurora
 
 /**
@@ -33,7 +35,9 @@ import com.francotte.contentproviderformusic.ui.theme.Aurora
 @Composable
 fun PlaylistSongRow(
     song: Song,
+    modifier: Modifier = Modifier,
     isCurrent: Boolean = false,
+    isPlaying: Boolean = true,
     selected: Boolean = false,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
@@ -45,7 +49,7 @@ fun PlaylistSongRow(
         else -> Color.White
     }
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(bg)
@@ -62,7 +66,11 @@ fun PlaylistSongRow(
             .padding(horizontal = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ItemAlbumImage(Modifier.size(50.dp), song.data, 16.dp)
+        if (isCurrent) {
+            PlayingEqualizer(Modifier.size(50.dp), animating = isPlaying)
+        } else {
+            ItemAlbumImage(Modifier.size(50.dp), song.data, song.title, 16.dp)
+        }
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -73,6 +81,8 @@ fun PlaylistSongRow(
             Text(
                 text = song.title,
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Normal,
+                color = Aurora.Night,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )

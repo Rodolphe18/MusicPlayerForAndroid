@@ -15,4 +15,6 @@ interface UserDataRepository {
     suspend fun addSongToPlaylist(playlistId: Long, songTitle: String)
 
     suspend fun removeSongFromPlaylist(playlistId: Long, songTitle: String)
+
+    suspend fun setAutoPlayOnStartup(enabled: Boolean)
 }

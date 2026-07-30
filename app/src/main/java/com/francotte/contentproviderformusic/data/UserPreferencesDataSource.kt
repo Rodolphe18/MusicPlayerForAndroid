@@ -18,6 +18,7 @@ class UserPreferencesDataSource @Inject constructor(
             UserData(
                 favoritesSongs = it.favoriteTitlesMap.keys,
                 playlists = it.toDomainPlaylists(),
+                autoPlayOnStartup = !it.autoplayDisabled,
             )
         }
 
@@ -48,6 +49,14 @@ class UserPreferencesDataSource @Inject constructor(
 
     override suspend fun removeSongFromPlaylist(playlistId: Long, songTitle: String) =
         updatePlaylists { it.withSongRemoved(playlistId, songTitle) }
+
+    override suspend fun setAutoPlayOnStartup(enabled: Boolean) {
+        try {
+            userPreferences.updateData { it.copy { autoplayDisabled = !enabled } }
+        } catch (ioException: IOException) {
+            Log.e("NiaPreferences", "Failed to update autoplay preference", ioException)
+        }
+    }
 
     /** Lit les playlists (domaine), applique [transform], réécrit toute la liste proto. */
     private suspend fun updatePlaylists(transform: (List<Playlist>) -> List<Playlist>) {

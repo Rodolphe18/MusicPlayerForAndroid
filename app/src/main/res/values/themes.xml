@@ -3,9 +3,13 @@
 
     <style name="Theme.ContentProviderForMusic" parent="android:Theme.Material.Light.NoActionBar" />
 
+    <!-- Les écrans OSS (OssLicensesMenuActivity / OssLicensesActivity) sont des
+         AppCompatActivity : ils exigent un thème Theme.AppCompat, sinon crash au lancement. -->
+    <style name="Theme.ContentProviderForMusic.OssLicenses" parent="Theme.AppCompat.DayNight.DarkActionBar" />
+
 
     <style name="Theme.ContentProviderForMusic.SplashScreen" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/purple</item>
+        <item name="windowSplashScreenBackground">@color/launcher_coral</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_music_icon</item>
         <item name="windowSplashScreenIconBackgroundColor">#FFFFFF</item>
         <item name="postSplashScreenTheme">@style/Theme.ContentProviderForMusic</item>

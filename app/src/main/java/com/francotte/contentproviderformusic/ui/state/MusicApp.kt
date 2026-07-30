@@ -1,5 +1,11 @@
 package com.francotte.contentproviderformusic.ui.state
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -7,6 +13,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -14,6 +22,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import com.francotte.contentproviderformusic.ui.MainViewModel
+import com.francotte.contentproviderformusic.ads.Banner
 import com.francotte.contentproviderformusic.ui.composable.FAVORITES_ROUTE
 import com.francotte.contentproviderformusic.ui.composable.LIBRARY_ROUTE
 import com.francotte.contentproviderformusic.ui.composable.PLAYLISTS_ROUTE
@@ -21,6 +30,7 @@ import com.francotte.contentproviderformusic.ui.composable.TopLevelDestination
 import com.francotte.contentproviderformusic.ui.favorites.navigateToFavoritesScreen
 import com.francotte.contentproviderformusic.ui.library.navigateToLibraryScreen
 import com.francotte.contentproviderformusic.ui.navigation.MusicNavHost
+import com.francotte.contentproviderformusic.ui.playlists.AddToPlaylistOverlay
 import com.francotte.contentproviderformusic.ui.playlists.navigateToPlayListsScreen
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -33,14 +43,47 @@ fun MusicApp(mainViewModel: MainViewModel, windowSizeClass: WindowSizeClass) {
 
     val appState = rememberMusicAppState()
 
-    MusicNavHost(
-        appState = appState,
-        windowSizeClass = windowSizeClass,
-        mainViewModel = mainViewModel,
-        isPlaying = isPlaying,
-        currentIndex = currentIndex,
-        currentDuration = currentDuration,
-    )
+    val addToPlaylistSong by mainViewModel.addToPlaylistSong.collectAsStateWithLifecycle()
+    val playlists by mainViewModel.playlists.collectAsStateWithLifecycle()
+
+    Column(Modifier.fillMaxSize()) {
+        Box(Modifier.weight(1f)) {
+            MusicNavHost(
+                appState = appState,
+                windowSizeClass = windowSizeClass,
+                mainViewModel = mainViewModel,
+                isPlaying = isPlaying,
+                currentIndex = currentIndex,
+                currentDuration = currentDuration,
+            )
+
+            // Overlay "Ajouter à" partagé : piloté par le VM, affiché au-dessus du NavHost
+            // pour couvrir aussi le player, quel que soit l'écran d'origine du clic sur "+".
+            addToPlaylistSong?.let { song ->
+                AddToPlaylistOverlay(
+                    song = song,
+                    playlists = playlists,
+                    onToggle = { playlist ->
+                        if (song.title in playlist.songTitles) {
+                            mainViewModel.removeSongFromPlaylist(playlist.id, song.title)
+                        } else {
+                            mainViewModel.addSongToPlaylist(playlist.id, song.title)
+                        }
+                    },
+                    onCreatePlaylist = { title, description ->
+                        mainViewModel.createPlaylist(System.currentTimeMillis(), title, description)
+                    },
+                    onClose = { mainViewModel.closeAddToPlaylist() },
+                )
+            }
+        }
+
+        Banner(
+            useAdaptiveSize = false,
+            horizontalPadding = 0.dp,
+            heightFallback = 50.dp,
+        )
+    }
 }
 
 @Composable

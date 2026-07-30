@@ -15,31 +15,50 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.francotte.contentproviderformusic.ui.theme.Aurora
+
+/** Six couleurs de playlist, utilisées successivement pour limiter les répétitions. */
+val PlaylistAccents = listOf(
+    Color(0xFF2F7D5F), // vert
+    Color(0xFFFF3B30), // corail
+    Color(0xFF63A66F), // vert clair
+    Color(0xFFF2763D), // orange, entre jaune et corail
+    Color(0xFFD89016), // ambre
+    Color(0xFF168F9C), // turquoise
+)
+
+/** Couleur attribuée d'après la position de la playlist dans la liste. */
+fun playlistAccentFor(index: Int): Color = PlaylistAccents[index % PlaylistAccents.size]
 
 /**
  * En-tête "poster typographique" : le titre de la playlist répété à plusieurs endroits
- * de la card (format 4/3) avec des tailles, styles, casses et couleurs différents.
+ * de la card avec des tailles, styles, casses et couleurs différents. Le dégradé et les
+ * filigranes se calent sur [color] (la couleur propre de la playlist).
  */
 @Composable
-fun PlaylistTitleCard(title: String, modifier: Modifier = Modifier) {
+fun PlaylistTitleCard(
+    title: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(22.dp),
+) {
     val cream = Color(0xFFF3ECDD)
-    val lilac = Color(0xFFE6B3F0)
+    val dark = lerp(color, Color.Black, 0.55f)
+    val light = lerp(color, Color.White, 0.6f)
     val display = title.ifBlank { "Playlist" }
-    val shape = RoundedCornerShape(22.dp)
-
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(16f / 9f)
+            .aspectRatio(2.2f)
             .clip(shape)
-            .background(Brush.linearGradient(listOf(Aurora.Night, Aurora.Purple, Aurora.Night)))
+            .background(Brush.linearGradient(listOf(dark, color, dark)))
             .border(1.dp, Color.White.copy(alpha = 0.12f), shape)
             .padding(18.dp),
     ) {
@@ -60,15 +79,15 @@ fun PlaylistTitleCard(title: String, modifier: Modifier = Modifier) {
             color = Color.White.copy(alpha = 0.07f),
             maxLines = 1,
             overflow = TextOverflow.Clip,
-            modifier = Modifier.align(Alignment.BottomCenter).padding(start = 14.dp, bottom = 28.dp),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(start = 18.dp, bottom = 22.dp),
         )
 
-        // Petit, lilas, espacé, en haut à droite.
+        // Petit, clair, espacé, en haut à droite.
         Text(
             text = display.lowercase(),
             style = MaterialTheme.typography.labelLarge,
             letterSpacing = 4.sp,
-            color = lilac,
+            color = light.copy(alpha = 0.5f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.align(Alignment.TopEnd).padding(end = 14.dp, top = 8.dp),
@@ -77,8 +96,8 @@ fun PlaylistTitleCard(title: String, modifier: Modifier = Modifier) {
         // Titre principal, centré.
         Text(
             text = display,
-            style = MaterialTheme.typography.displayMedium,
-            fontWeight = FontWeight.ExtraBold,
+            style = MaterialTheme.typography.displayLarge,
+            fontWeight = FontWeight.Bold,
             color = cream,
             textAlign = TextAlign.Center,
             maxLines = 2,
@@ -97,15 +116,15 @@ fun PlaylistTitleCard(title: String, modifier: Modifier = Modifier) {
             modifier = Modifier.align(Alignment.BottomStart).padding(start = 16.dp),
         )
 
-        // Gras lilas, MAJUSCULES, en bas à droite.
+        // Gras clair, MAJUSCULES, en bas à droite.
         Text(
             text = display.uppercase(),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Black,
-            color = lilac,
+            color = light.copy(alpha = 0.5f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 12.dp, end = 2.dp),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 12.dp, end = 8.dp)
         )
     }
 }

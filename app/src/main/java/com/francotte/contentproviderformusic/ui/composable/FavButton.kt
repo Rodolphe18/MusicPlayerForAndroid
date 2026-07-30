@@ -13,10 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.francotte.contentproviderformusic.R
+import com.francotte.contentproviderformusic.ui.theme.Aurora
 
 @Composable
 fun FavButton(
@@ -25,7 +25,7 @@ fun FavButton(
     onToggleFavorite: () -> Unit
 ) {
 
-    val backgroundColor = if (isFavorite) colorResource(R.color.purple_200) else Color.White
+    val backgroundColor = if (isFavorite) Aurora.Purple else Color.White
     val iconColor = if (isFavorite) Color.White else Color.LightGray
 
     Box(
@@ -44,7 +44,7 @@ fun FavButton(
         Icon(
             painter = painterResource(R.drawable.ic_favorite),
             contentDescription = null,
-            modifier = Modifier.align(Alignment.Center).size(25.dp),
+            modifier = Modifier.align(Alignment.Center).size(28.dp),
             tint = iconColor,
         )
     }

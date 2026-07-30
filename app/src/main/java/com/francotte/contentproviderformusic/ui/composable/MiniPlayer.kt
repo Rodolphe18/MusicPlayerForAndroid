@@ -1,5 +1,6 @@
 package com.francotte.contentproviderformusic.ui.composable
 
+import android.app.Activity
 import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -32,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,10 +42,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
+import androidx.core.view.WindowCompat
 import com.francotte.contentproviderformusic.model.Song
 import com.francotte.contentproviderformusic.ui.theme.Aurora
 import kotlinx.collections.immutable.ImmutableList
@@ -102,8 +106,25 @@ fun FullPlayer(
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onSeek: (Float) -> Unit,
-    onToggleFavorite: (String, Boolean) -> Unit
+    onToggleFavorite: (String, Boolean) -> Unit,
+    isRepeatOneEnabled: Boolean = false,
+    onToggleRepeatOne: () -> Unit = {},
+    onAddToPlaylist: () -> Unit = {}
 ) {
+    val view = LocalView.current
+    DisposableEffect(view) {
+        val window = (view.context as? Activity)?.window
+        val insetsController = window?.let { WindowCompat.getInsetsController(it, view) }
+        val wasUsingDarkIcons = insetsController?.isAppearanceLightStatusBars
+        insetsController?.isAppearanceLightStatusBars = false
+
+        onDispose {
+            if (wasUsingDarkIcons != null) {
+                insetsController.isAppearanceLightStatusBars = wasUsingDarkIcons
+            }
+        }
+    }
+
     SongBody(
         song = song,
         isPlaying = isPlaying,
@@ -112,6 +133,9 @@ fun FullPlayer(
         onPlayPause = onPlayPause,
         sliderValue = sliderValue,
         onSliderValueChanged = onSeek,
-        onToggleFavorite = onToggleFavorite
+        onToggleFavorite = onToggleFavorite,
+        isRepeatOneEnabled = isRepeatOneEnabled,
+        onToggleRepeatOne = onToggleRepeatOne,
+        onAddToPlaylist = onAddToPlaylist
     )
 }

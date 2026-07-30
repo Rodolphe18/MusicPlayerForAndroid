@@ -1,5 +1,6 @@
 package com.francotte.contentproviderformusic.ui.playlists
 
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -17,7 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -37,24 +38,41 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.francotte.contentproviderformusic.R
 import com.francotte.contentproviderformusic.model.Playlist
+import com.francotte.contentproviderformusic.model.Song
 import com.francotte.contentproviderformusic.ui.composable.BottomBar
+import com.francotte.contentproviderformusic.ui.composable.BottomBarHeight
+import com.francotte.contentproviderformusic.ui.composable.PlayerSheetScaffold
 import com.francotte.contentproviderformusic.ui.state.MusicAppState
 import com.francotte.contentproviderformusic.ui.theme.Aurora
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistsScreen(
     appState: MusicAppState,
     playlists: List<Playlist>,
+    currentSong: Song?,
+    isPlaying: Boolean,
+    sliderValue: Float,
     onCreateClick: () -> Unit,
     onPlaylistClick: (Long) -> Unit,
     onDeletePlaylists: (Set<Long>) -> Unit,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    onPlayPause: () -> Unit,
+    onSeek: (Float) -> Unit,
+    onClose: () -> Unit,
+    onToggleFavorite: (String, Boolean) -> Unit,
+    onAddToPlaylist: () -> Unit = {},
+    isRepeatOneEnabled: Boolean = false,
+    onToggleRepeatOne: () -> Unit = {},
 ) {
     var selectionMode by remember { mutableStateOf(false) }
     var selectedIds by remember { mutableStateOf(emptySet<Long>()) }
@@ -73,78 +91,116 @@ fun PlaylistsScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        bottomBar = {
-            BottomBar(
-                modifier = Modifier.fillMaxWidth(),
-                destinations = appState.topLevelDestinations,
-                onNavigateToDestination = appState::navigateToTopLevelDestination,
-                currentDestination = appState.currentDestination,
-            )
-        },
-        floatingActionButton = {
-            // Pas de FAB quand la liste est vide (l'état vide a déjà son bouton) ni en sélection.
-            if (playlists.isNotEmpty() && !selectionMode) {
-                FloatingActionButton(
-                    onClick = onCreateClick,
-                    shape = RoundedCornerShape(16.dp),
-                    containerColor = Aurora.Purple,
-                    contentColor = Color.White,
-                    modifier = Modifier.padding(16.dp),
-                ) {
-                    Icon(painterResource(R.drawable.ic_add), contentDescription = "Créer une playlist")
-                }
-            }
-        },
-    ) { innerPadding ->
-        Box(Modifier.fillMaxSize().padding(innerPadding)) {
-            if (playlists.isEmpty()) {
-                PlaylistsEmptyState(
-                    modifier = Modifier.fillMaxSize(),
-                    onCreateClick = onCreateClick,
+        containerColor = Aurora.CoralBackground,
+    ) {
+        // Mini player (au-dessus de la bottom bar) + sheet plein écran, comme sur les autres onglets.
+        PlayerSheetScaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Aurora.CoralBackground),
+            currentSong = currentSong,
+            isPlaying = isPlaying,
+            sliderValue = sliderValue,
+            onPrevious = onPrevious,
+            onNext = onNext,
+            onPlayPause = onPlayPause,
+            onSeek = onSeek,
+            onClose = onClose,
+            onToggleFavorite = onToggleFavorite,
+            isRepeatOneEnabled = isRepeatOneEnabled,
+            onToggleRepeatOne = onToggleRepeatOne,
+            onAddToPlaylist = onAddToPlaylist,
+            collapsedBottomInset = BottomBarHeight,
+            overlayContent = {
+                BottomBar(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth(),
+                    destinations = appState.topLevelDestinations,
+                    onNavigateToDestination = appState::navigateToTopLevelDestination,
+                    currentDestination = appState.currentDestination,
                 )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    item {
-                        Text(
-                            text = "My Playlists",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(vertical = 8.dp),
-                        )
-                    }
-                    items(playlists, key = { it.id }) { playlist ->
-                        PlaylistCard(
-                            playlist = playlist,
-                            selectionMode = selectionMode,
-                            selected = playlist.id in selectedIds,
-                            onClick = {
-                                if (selectionMode) toggle(playlist.id)
-                                else onPlaylistClick(playlist.id)
-                            },
-                            onLongClick = {
-                                if (!selectionMode) {
-                                    selectionMode = true
-                                    selectedIds = setOf(playlist.id)
-                                }
-                            },
-                        )
+            },
+        ) { bottomContentPadding, _ ->
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Aurora.CoralBackground)
+                    .padding(top = 28.dp)
+            ) {
+                if (playlists.isEmpty()) {
+                    PlaylistsEmptyState(
+                        modifier = Modifier.fillMaxSize(),
+                        onCreateClick = onCreateClick,
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 12.dp,
+                            bottom = bottomContentPadding + 16.dp,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        item {
+                            Text(
+                                text = stringResource(R.string.playlists_title),
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(vertical = 8.dp),
+                            )
+                        }
+                        itemsIndexed(playlists, key = { _, playlist -> playlist.id }) { index, playlist ->
+                            PlaylistCard(
+                                playlist = playlist,
+                                accent = playlistAccentFor(index),
+                                selectionMode = selectionMode,
+                                selected = playlist.id in selectedIds,
+                                onClick = {
+                                    if (selectionMode) toggle(playlist.id)
+                                    else onPlaylistClick(playlist.id)
+                                },
+                                onLongClick = {
+                                    if (!selectionMode) {
+                                        selectionMode = true
+                                        selectedIds = setOf(playlist.id)
+                                    }
+                                },
+                            )
+                        }
                     }
                 }
-            }
 
-            if (selectionMode) {
-                SelectionDeleteBar(
-                    count = selectedIds.size,
-                    onDelete = {
-                        onDeletePlaylists(selectedIds)
-                        exitSelection()
-                    },
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                )
+                // FAB "créer" : au-dessus du mini player (padding bas = espace réservé au player).
+                // Pas de FAB quand la liste est vide (l'état vide a son bouton) ni en sélection.
+                if (playlists.isNotEmpty() && !selectionMode) {
+                    FloatingActionButton(
+                        onClick = onCreateClick,
+                        shape = RoundedCornerShape(16.dp),
+                        containerColor = Aurora.Purple,
+                        contentColor = Color.White,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 16.dp, bottom = bottomContentPadding + 16.dp),
+                    ) {
+                        Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.create_playlist))
+                    }
+                }
+
+                if (selectionMode) {
+                    SelectionDeleteBar(
+                        count = selectedIds.size,
+                        onDelete = {
+                            onDeletePlaylists(selectedIds)
+                            exitSelection()
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = bottomContentPadding),
+                    )
+                }
             }
         }
     }
@@ -154,30 +210,29 @@ fun PlaylistsScreen(
 @Composable
 private fun PlaylistCard(
     playlist: Playlist,
+    accent: Color,
     selectionMode: Boolean,
     selected: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
-    val cardBrush = Brush.horizontalGradient(
-        listOf(Aurora.Purple.copy(alpha = 0.12f), Aurora.Teal.copy(alpha = 0.12f)),
-    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
-            .background(cardBrush)
-            .then(if (selected) Modifier.background(Aurora.Purple.copy(alpha = 0.18f)) else Modifier)
+            .background(accent.copy(alpha = 0.12f))
+            .then(if (selected) Modifier.background(accent.copy(alpha = 0.18f)) else Modifier)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Vignette colorée (dégradé accent) avec l'icône playlist.
+        // Vignette de la couleur propre à la playlist, avec l'icône playlist.
         Box(
             modifier = Modifier
                 .size(56.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(Aurora.AccentBrush),
+                .background(accent),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -209,13 +264,13 @@ private fun PlaylistCard(
             Spacer(Modifier.height(8.dp))
             // Pastille compteur de titres.
             Text(
-                text = "${playlist.songTitles.size} titre(s)",
+                text = stringResource(R.string.playlist_song_count, playlist.songTitles.size),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = Aurora.Purple,
+                color = accent,
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(Aurora.Purple.copy(alpha = 0.14f))
+                    .background(accent.copy(alpha = 0.14f))
                     .padding(horizontal = 10.dp, vertical = 4.dp),
             )
         }
@@ -240,21 +295,21 @@ private fun PlaylistsEmptyState(modifier: Modifier = Modifier, onCreateClick: ()
         )
         Spacer(Modifier.height(24.dp))
         Text(
-            text = "Aucune playlist",
+            text = stringResource(R.string.playlists_empty_title),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Créez votre première playlist pour rassembler vos titres préférés.",
+            text = stringResource(R.string.playlists_empty_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
         )
         Spacer(Modifier.height(28.dp))
         com.francotte.contentproviderformusic.ui.composable.GradientButton(
-            text = "Créer une playlist",
+            text = stringResource(R.string.create_playlist),
             onClick = onCreateClick,
             modifier = Modifier.padding(horizontal = 24.dp),
         )

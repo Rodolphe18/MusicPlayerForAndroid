@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import com.google.android.gms.ads.MobileAds
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
@@ -18,6 +19,10 @@ class MusicApplication: Application() {
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
+
+        // Initialisation du SDK Google Mobile Ads (opération I/O -> hors du thread principal).
+        // Le consentement (UMP) est géré séparément dans ConsentManager au moment de l'affichage.
+        Thread { MobileAds.initialize(this) }.start()
     }
 
 }

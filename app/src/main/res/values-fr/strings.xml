@@ -22,6 +22,10 @@
     <string name="search_no_results_title">Aucun résultat</string>
     <string name="search_no_results_subtitle">Aucun titre ne correspond à « %1$s ».</string>
 
+    <!-- Top bar screen titles -->
+    <string name="library_title">Ma bibliothèque</string>
+    <string name="favorites_title">Mes favoris</string>
+
     <!-- Favorites -->
     <string name="favorites_empty_title">Aucun favori</string>
     <string name="favorites_empty_subtitle">Appuyez sur le cœur d\'un titre pour l\'ajouter à vos favoris.</string>
@@ -37,12 +41,15 @@
     <string name="create_playlist_title">Nouvelle playlist</string>
     <string name="playlist_name_label">Nom</string>
     <string name="playlist_name_hint">Nom de la playlist</string>
-    <string name="playlist_description_label">Description</string>
+    <string name="playlist_description_label">Description (optionnel)</string>
     <string name="playlist_description_hint">Décrivez votre playlist…</string>
     <string name="create">Créer</string>
 
     <!-- Playlist detail / add songs -->
     <string name="add_songs">Ajouter des titres</string>
+    <string name="add_to_playlist_title">Ajouter à</string>
+    <string name="share_song">Partager le titre</string>
+    <string name="cd_share">Partager</string>
     <string name="cd_already_added">Déjà ajouté</string>
     <string name="cd_add">Ajouter</string>
 

@@ -22,6 +22,10 @@
     <string name="search_no_results_title">結果がありません</string>
     <string name="search_no_results_subtitle">\"%1$s\" に一致する曲がありません。</string>
 
+    <!-- Top bar screen titles -->
+    <string name="library_title">マイライブラリ</string>
+    <string name="favorites_title">お気に入り</string>
+
     <!-- Favorites -->
     <string name="favorites_empty_title">お気に入りはまだありません</string>
     <string name="favorites_empty_subtitle">曲のハートをタップしてお気に入りに追加します。</string>
@@ -43,6 +47,9 @@
 
     <!-- Playlist detail / add songs -->
     <string name="add_songs">曲を追加</string>
+    <string name="add_to_playlist_title">追加先</string>
+    <string name="share_song">曲を共有</string>
+    <string name="cd_share">共有</string>
     <string name="cd_already_added">追加済み</string>
     <string name="cd_add">追加</string>
 

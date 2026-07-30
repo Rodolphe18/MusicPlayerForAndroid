@@ -33,12 +33,28 @@ fun NavGraphBuilder.playlistsGraph(
 ) {
     composable(route = PLAYLISTS_ROUTE) {
         val playlists by mainViewModel.playlists.collectAsStateWithLifecycle()
+        val currentSong by mainViewModel.currentPlayingSong.collectAsStateWithLifecycle()
+        val isPlaying by mainViewModel.isPlaying.collectAsStateWithLifecycle()
+        val sliderValue by mainViewModel.currentDuration.collectAsStateWithLifecycle()
+        val isRepeatOneEnabled by mainViewModel.isRepeatOneEnabled.collectAsStateWithLifecycle()
         PlaylistsScreen(
             appState = appState,
             playlists = playlists,
+            currentSong = currentSong,
+            isPlaying = isPlaying,
+            sliderValue = sliderValue,
             onCreateClick = { appState.navController.navigateToPlaylistCreate() },
             onPlaylistClick = { id -> appState.navController.navigateToPlaylistDetail(id) },
             onDeletePlaylists = { ids -> mainViewModel.deletePlaylists(ids) },
+            onPrevious = { mainViewModel.prevSong() },
+            onNext = { mainViewModel.nextSong() },
+            onPlayPause = { mainViewModel.playPause() },
+            onSeek = { mainViewModel.onSeekBarValueChanged(it) },
+            onClose = { mainViewModel.stopSong() },
+            onToggleFavorite = { title, isFav -> mainViewModel.updateFavoritesSongs(title, isFav) },
+            onAddToPlaylist = { mainViewModel.openAddToPlaylist() },
+            isRepeatOneEnabled = isRepeatOneEnabled,
+            onToggleRepeatOne = mainViewModel::toggleRepeatOne,
         )
     }
 
@@ -65,12 +81,17 @@ fun NavGraphBuilder.playlistsGraph(
         val currentSong by mainViewModel.currentPlayingSong.collectAsStateWithLifecycle()
         val isPlaying by mainViewModel.isPlaying.collectAsStateWithLifecycle()
         val sliderValue by mainViewModel.currentDuration.collectAsStateWithLifecycle()
+        val isRepeatOneEnabled by mainViewModel.isRepeatOneEnabled.collectAsStateWithLifecycle()
         val playlist = playlists.find { it.id == playlistId }
+        val playlistAccent = playlistAccentFor(
+            playlists.indexOfFirst { it.id == playlistId }.coerceAtLeast(0),
+        )
         val playlistSongs = remember(playlist, allSongs) {
             playlist?.let { resolveByTitle(it.songTitles, allSongs) { s -> s.title } } ?: emptyList()
         }
         PlaylistDetailScreen(
             playlist = playlist,
+            accent = playlistAccent,
             songs = playlistSongs,
             currentSong = currentSong,
             isPlaying = isPlaying,
@@ -85,6 +106,9 @@ fun NavGraphBuilder.playlistsGraph(
             onSeek = { mainViewModel.onSeekBarValueChanged(it) },
             onClose = { mainViewModel.stopSong() },
             onToggleFavorite = { title, isFav -> mainViewModel.updateFavoritesSongs(title, isFav) },
+            onAddToPlaylist = { mainViewModel.openAddToPlaylist() },
+            isRepeatOneEnabled = isRepeatOneEnabled,
+            onToggleRepeatOne = mainViewModel::toggleRepeatOne,
         )
     }
 

@@ -22,6 +22,10 @@
     <string name="search_no_results_title">Sonuç yok</string>
     <string name="search_no_results_subtitle">\"%1$s\" ile eşleşen şarkı yok.</string>
 
+    <!-- Top bar screen titles -->
+    <string name="library_title">Kitaplığım</string>
+    <string name="favorites_title">Favorilerim</string>
+
     <!-- Favorites -->
     <string name="favorites_empty_title">Henüz favori yok</string>
     <string name="favorites_empty_subtitle">Bir şarkıyı favorilere eklemek için kalp simgesine dokunun.</string>
@@ -43,6 +47,9 @@
 
     <!-- Playlist detail / add songs -->
     <string name="add_songs">Şarkı ekle</string>
+    <string name="add_to_playlist_title">Şuna ekle</string>
+    <string name="share_song">Şarkıyı paylaş</string>
+    <string name="cd_share">Paylaş</string>
     <string name="cd_already_added">Zaten eklendi</string>
     <string name="cd_add">Ekle</string>
 

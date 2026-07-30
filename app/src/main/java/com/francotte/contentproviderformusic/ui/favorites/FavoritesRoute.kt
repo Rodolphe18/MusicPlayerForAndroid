@@ -5,7 +5,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -17,6 +21,7 @@ import com.francotte.contentproviderformusic.ui.MainViewModel
 import com.francotte.contentproviderformusic.ui.composable.EmptyState
 import com.francotte.contentproviderformusic.ui.composable.FAVORITES_ROUTE
 import com.francotte.contentproviderformusic.ui.composable.HomeScreen
+import com.francotte.contentproviderformusic.ui.settings.SettingsDialog
 import com.francotte.contentproviderformusic.ui.state.MusicAppState
 
 fun NavController.navigateToFavoritesScreen(navOptions: NavOptions? = null) {
@@ -54,9 +59,14 @@ fun FavoritesRoute(
 ) {
     val favoriteSongs by mainViewModel.favoritesSongs.collectAsStateWithLifecycle()
     val currentSong by mainViewModel.currentPlayingSong.collectAsStateWithLifecycle()
+    val isRepeatOneEnabled by mainViewModel.isRepeatOneEnabled.collectAsStateWithLifecycle()
+
+    var showSettings by rememberSaveable { mutableStateOf(false) }
+
     Box(Modifier.fillMaxSize()) {
         HomeScreen(
             modifier = Modifier.fillMaxSize(),
+            title = stringResource(R.string.favorites_title),
             windowSizeClass = windowSizeClass,
             appState = musicAppState,
             songs = favoriteSongs,
@@ -80,13 +90,21 @@ fun FavoritesRoute(
             onToggleFavorite = { title, isFav ->
                 mainViewModel.updateFavoritesSongs(title, isFav)
             },
+            onSettingsClick = { showSettings = true },
+            isRepeatOneEnabled = isRepeatOneEnabled,
+            onToggleRepeatOne = mainViewModel::toggleRepeatOne,
+            onAddToPlaylist = { mainViewModel.openAddToPlaylist() },
             emptyContent = {
                 EmptyState(
                     icon = R.drawable.ic_favorite_border,
-                    title = "No favorites yet",
-                    subtitle = "Tap the heart on a song to add it to your favorites."
+                    title = stringResource(R.string.favorites_empty_title),
+                    subtitle = stringResource(R.string.favorites_empty_subtitle)
                 )
             })
+
+        if (showSettings) {
+            SettingsDialog(mainViewModel = mainViewModel, onDismiss = { showSettings = false })
+        }
     }
 
 

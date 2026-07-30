@@ -1,32 +1,32 @@
 package com.francotte.contentproviderformusic.ui.composable
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
 import com.francotte.contentproviderformusic.R
-import com.francotte.contentproviderformusic.ui.theme.Aurora
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,73 +43,59 @@ fun SongAppBar(
     actionIconContentDescription: String? = null,
     onActionClick: () -> Unit = {}
 ) {
-    Box(
-        Modifier
+    // En-tête aligné à gauche (style onglet "Mes playlists"), destiné à être placé comme
+    // premier item de la LazyColumn : il défile donc avec la liste. Les actions recherche/
+    // réglages (corail foncé) sont en bout de ligne. Aucun fond propre : celui de la liste
+    // (conteneur du Scaffold) transparaît.
+    Row(
+        modifier = modifier
             .fillMaxWidth()
-            .background(Aurora.Night)
+            .padding(start = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        CenterAlignedTopAppBar(
-            title = {
-                if (searchActive) {
-                    SearchField(
-                        query = searchQuery,
-                        onQueryChange = onSearchQueryChange
+        if (searchActive) {
+            IconButton(onClick = onSearchClose) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_close),
+                    contentDescription = stringResource(R.string.cd_close_search),
+                    tint = Color.Black,
+                )
+            }
+            Box(Modifier.weight(1f)) {
+                SearchField(query = searchQuery, onQueryChange = onSearchQueryChange)
+            }
+            if (searchQuery.isNotEmpty()) {
+                IconButton(onClick = { onSearchQueryChange("") }) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_close),
+                        contentDescription = stringResource(R.string.cd_clear),
+                        tint = Color.Black,
                     )
-                } else {
-                    Text(
-                        text = title,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White,
-                        maxLines = 1
-                    )
                 }
-            },
-            navigationIcon = {
-                if (searchActive) {
-                    IconButton(onClick = onSearchClose) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_close),
-                            contentDescription = "Close search",
-                            tint = Color.White
-                        )
-                    }
-                } else {
-                    IconButton(onClick = onSearchOpen) {
-                        Icon(
-                            painter = painterResource(leftIcon),
-                            contentDescription = "Search",
-                            tint = Color.White
-                        )
-                    }
-                }
-            },
-            actions = {
-                if (searchActive) {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { onSearchQueryChange("") }) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_close),
-                                contentDescription = "Clear",
-                                tint = Color.White
-                            )
-                        }
-                    }
-                } else {
-                    IconButton(onClick = onActionClick) {
-                        Icon(
-                            painter = painterResource(rightIcon),
-                            contentDescription = actionIconContentDescription,
-                            tint = Color.White
-                        )
-                    }
-                }
-            },
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = Color.Transparent
-            ),
-            modifier = modifier,
-        )
+            }
+        } else {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onSearchOpen) {
+                Icon(
+                    painter = painterResource(leftIcon),
+                    contentDescription = stringResource(R.string.cd_search),
+                    tint = Color.Black,
+                )
+            }
+            IconButton(onClick = onActionClick) {
+                Icon(
+                    painter = painterResource(rightIcon),
+                    contentDescription = actionIconContentDescription,
+                    tint = Color.Black,
+                )
+            }
+        }
     }
 }
 
@@ -128,15 +114,15 @@ private fun SearchField(
             .fillMaxWidth()
             .focusRequester(focusRequester),
         singleLine = true,
-        textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
-        cursorBrush = SolidColor(Color.White),
+        textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
+        cursorBrush = SolidColor(Color.Black),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         decorationBox = { innerTextField ->
             if (query.isEmpty()) {
                 Text(
-                    text = "Search for a song…",
+                    text = stringResource(R.string.search_hint),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.6f),
+                    color = Color.Black.copy(alpha = 0.5f),
                     maxLines = 1
                 )
             }

@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.Window
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
@@ -29,6 +33,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
+import com.francotte.contentproviderformusic.R
+import com.francotte.contentproviderformusic.ads.InterstitialAdState
+import com.francotte.contentproviderformusic.ads.InterstitialManager
 import com.francotte.contentproviderformusic.repository.SongsFetcherRepository
 import com.francotte.contentproviderformusic.service.MusicService
 import com.francotte.contentproviderformusic.ui.composable.rememberMediaController
@@ -38,12 +45,18 @@ import com.francotte.contentproviderformusic.ui.theme.ContentProviderForMusicThe
 import com.francotte.contentproviderformusic.utils.MediaManager
 import com.francotte.contentproviderformusic.utils.PermissionManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @kotlin.OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val mainViewModel by viewModels<MainViewModel>()
+
+    @Inject
+    lateinit var interstitialManager: InterstitialManager
 
 
     @OptIn(UnstableApi::class, ExperimentalMaterial3WindowSizeClassApi::class)
@@ -52,15 +65,32 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestPermissions()
-        installSplashScreen().setKeepOnScreenCondition { mainViewModel.isLoading.value }
-        enableEdgeToEdge()
+        installSplashScreen().setKeepOnScreenCondition {
+          mainViewModel.isLoading.value || mainViewModel.splashHold.value
+        }
+        // Barre de navigation translucide (pas de scrim blanc) : le contenu passe dessous.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.auto(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT,
+            ),
+            navigationBarStyle = SystemBarStyle.auto(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT,
+            ),
+        )
         startService(Intent(this, MusicService::class.java))
         setContent {
             ContentProviderForMusicTheme {
                 val permissionGranted by mainViewModel.permissionGranted.collectAsStateWithLifecycle()
+                val autoPlayOnStartup by mainViewModel.autoPlayOnStartup.collectAsStateWithLifecycle()
                 val controller = rememberMediaController(this)
                 val musicAppState = rememberMusicAppState()
-                //   HideNavigationBar(window)
+                // Passe à true quand l'interstitiel est terminé (affiché, ignoré, en échec ou
+                // en timeout). L'auto-play attend cet état pour ne pas démarrer sous l'annonce.
+                var adFinished by remember { mutableStateOf(false) }
+                // Masque la barre de navigation système du bas (réapparaît par swipe transitoire).
+                HideNavigationBar(window)
                 LaunchedEffect(controller) {
                     controller?.let { mainViewModel.attachController(it) }
                 }
@@ -72,9 +102,47 @@ class MainActivity : ComponentActivity() {
                         SongsFetcherRepository.updateSongs(MediaManager.getUserSongs(this@MainActivity))
                     }
                 }
-                LaunchedEffect(permissionGranted, controller, SongsFetcherRepository.songs.size) {
-                    if (permissionGranted && controller != null && SongsFetcherRepository.songs.isNotEmpty()) {
-                        if (controller.mediaItemCount == 0) {
+                // Interstitiel au démarrage : seulement une fois la permission accordée
+                // (expérience normale). Le splash reste affiché jusqu'à ce que l'annonce
+                // apparaisse (Showing) ou soit résolue (Done : échec/refus/timeout), avec un
+                // filet de 6 s. Le manager gère consentement et "une seule fois".
+                LaunchedEffect(permissionGranted) {
+                    if (permissionGranted) {
+                        // Filet : si l'annonce n'apparaît jamais, on relâche le splash au bout de 6 s
+                        // (ne touche pas à l'auto-play tant qu'une annonce peut encore s'afficher).
+                        val splashTimeout = launch {
+                            delay(6000)
+                            mainViewModel.releaseSplash()
+                        }
+                        interstitialManager
+                            .loadAndShowInterstitialAd(this@MainActivity)
+                            .collect { state ->
+                                when (state) {
+                                    // Shown = l'annonce couvre RÉELLEMENT l'écran
+                                    // (onAdShowedFullScreenContent). On retire le splash derrière
+                                    // seulement ici — pas sur Showing, qui est émis AVANT show()
+                                    // et laisserait apparaître l'écran principal ~0,5 s.
+                                    InterstitialAdState.Shown -> mainViewModel.releaseSplash()
+                                    // Terminé (annonce fermée, ou aucune annonce à afficher).
+                                    InterstitialAdState.Done -> {
+                                        adFinished = true
+                                        mainViewModel.releaseSplash()
+                                    }
+                                    else -> Unit
+                                }
+                            }
+                        // Filet de sécurité : si le flow se termine sans émettre Done.
+                        splashTimeout.cancel()
+                        adFinished = true
+                        mainViewModel.releaseSplash()
+                    }
+                }
+                LaunchedEffect(permissionGranted, adFinished, autoPlayOnStartup, controller, SongsFetcherRepository.songs.size) {
+                    if (permissionGranted && adFinished && autoPlayOnStartup && controller != null && SongsFetcherRepository.songs.isNotEmpty()) {
+                        // Démarre la 1re chanson une fois l'interstitiel terminé, si l'utilisateur
+                        // n'a pas désactivé l'auto-play et si rien n'est déjà en lecture (couvre
+                        // aussi la réouverture à chaud où la file est déjà chargée).
+                        if (!controller.isPlaying) {
                             mainViewModel.playSelectedSong(0)
                         }
                     }
@@ -91,11 +159,13 @@ class MainActivity : ComponentActivity() {
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionsStatusMap ->
                 if (!permissionsStatusMap.containsValue(false)) {
                     // all permissions are accepted
-                    Toast.makeText(this, "all permissions are accepted", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.permissions_granted), Toast.LENGTH_SHORT).show()
                     mainViewModel.updatePermissionStatus()
                 } else {
-                    Toast.makeText(this, "all permissions are not accepted", Toast.LENGTH_SHORT)
+                    Toast.makeText(this, getString(R.string.permissions_denied), Toast.LENGTH_SHORT)
                         .show()
+                    // Pas d'annonce sans permission : on ne bloque pas le splash.
+                    mainViewModel.releaseSplash()
                 }
             }
         PermissionManager.requestRuntimePermission(multiplePermissionsContract)

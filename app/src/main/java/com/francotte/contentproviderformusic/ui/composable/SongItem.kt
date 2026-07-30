@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -25,16 +26,20 @@ import com.francotte.contentproviderformusic.ui.theme.Aurora
 import com.francotte.contentproviderformusic.utils.formatDuration
 
 @Composable
-fun SongItem(song:Song, isCurrent:Boolean, onClick:()->Unit) {
+fun SongItem(song:Song, isCurrent:Boolean, isPlaying: Boolean = true, onClick:()->Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isCurrent) Aurora.Purple.copy(0.15f) else Color.White)
+            .background(if (isCurrent) Aurora.Coral.copy(0.22f) else Color.White)
             .padding(horizontal = 6.dp)
             .clickable { onClick() }, verticalAlignment = Alignment.CenterVertically
     ) {
-        ItemAlbumImage(Modifier.size(50.dp), song.data, 16.dp)
+        if (isCurrent) {
+            PlayingEqualizer(Modifier.size(50.dp), animating = isPlaying)
+        } else {
+            ItemAlbumImage(Modifier.size(50.dp), song.data, song.title, 16.dp)
+        }
         Column(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
@@ -45,6 +50,7 @@ fun SongItem(song:Song, isCurrent:Boolean, onClick:()->Unit) {
             Text(
                 text = song.title,
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Normal,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )

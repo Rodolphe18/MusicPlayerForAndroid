@@ -22,6 +22,10 @@
     <string name="search_no_results_title">Ничего не найдено</string>
     <string name="search_no_results_subtitle">Нет песен по запросу \"%1$s\".</string>
 
+    <!-- Top bar screen titles -->
+    <string name="library_title">Моя библиотека</string>
+    <string name="favorites_title">Моё избранное</string>
+
     <!-- Favorites -->
     <string name="favorites_empty_title">Пока нет избранного</string>
     <string name="favorites_empty_subtitle">Нажмите на сердечко у песни, чтобы добавить её в избранное.</string>
@@ -43,6 +47,9 @@
 
     <!-- Playlist detail / add songs -->
     <string name="add_songs">Добавить песни</string>
+    <string name="add_to_playlist_title">Добавить в</string>
+    <string name="share_song">Поделиться песней</string>
+    <string name="cd_share">Поделиться</string>
     <string name="cd_already_added">Уже добавлено</string>
     <string name="cd_add">Добавить</string>
 

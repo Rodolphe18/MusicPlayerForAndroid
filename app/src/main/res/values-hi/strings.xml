@@ -22,6 +22,10 @@
     <string name="search_no_results_title">कोई परिणाम नहीं</string>
     <string name="search_no_results_subtitle">\"%1$s\" से मेल खाता कोई गाना नहीं।</string>
 
+    <!-- Top bar screen titles -->
+    <string name="library_title">मेरी लाइब्रेरी</string>
+    <string name="favorites_title">मेरे पसंदीदा</string>
+
     <!-- Favorites -->
     <string name="favorites_empty_title">अभी कोई पसंदीदा नहीं</string>
     <string name="favorites_empty_subtitle">किसी गाने को पसंदीदा में जोड़ने के लिए उस पर दिल के निशान को टैप करें।</string>
@@ -43,6 +47,9 @@
 
     <!-- Playlist detail / add songs -->
     <string name="add_songs">गाने जोड़ें</string>
+    <string name="add_to_playlist_title">इसमें जोड़ें</string>
+    <string name="share_song">गाना शेयर करें</string>
+    <string name="cd_share">शेयर करें</string>
     <string name="cd_already_added">पहले से जोड़ा गया</string>
     <string name="cd_add">जोड़ें</string>
 

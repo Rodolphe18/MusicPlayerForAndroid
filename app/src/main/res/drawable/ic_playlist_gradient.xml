@@ -9,7 +9,7 @@
                 android:type="linear"
                 android:startX="0" android:startY="0"
                 android:endX="256" android:endY="256">
-                <item android:offset="0" android:color="#FF3B2A82"/>
+                <item android:offset="0" android:color="#FFE85D54"/>
                 <item android:offset="0.5" android:color="#FF2EC4B6"/>
                 <item android:offset="1" android:color="#FF4DD6FF"/>
             </gradient>

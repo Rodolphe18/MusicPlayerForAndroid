@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.hilt.plugin)
     alias(libs.plugins.ksp)
     alias(libs.plugins.protobuf)
+    id("com.google.android.gms.oss-licenses-plugin")
 }
 
 android {
@@ -41,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -95,8 +97,11 @@ dependencies {
     implementation(libs.protobuf.kotlin.lite)
     implementation(libs.kotlinx.collections.immutable)
 
-  //  implementation("androidx.media3:media3-session:1.6.1")
-
+    implementation(libs.play.services.ads)
+    implementation(libs.play.services.ads.lite)
+    implementation(libs.play.services.ads.identifier)
+    implementation(libs.play.services.oss.licenses)
+    implementation(libs.androidx.appcompat)
 }
 
 // En module unique, KSP (Hilt) ne voit pas les classes proto générées, d'où

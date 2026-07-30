@@ -22,6 +22,10 @@
     <string name="search_no_results_title">Tidak ada hasil</string>
     <string name="search_no_results_subtitle">Tidak ada lagu yang cocok dengan \"%1$s\".</string>
 
+    <!-- Top bar screen titles -->
+    <string name="library_title">Perpustakaan Saya</string>
+    <string name="favorites_title">Favorit Saya</string>
+
     <!-- Favorites -->
     <string name="favorites_empty_title">Belum ada favorit</string>
     <string name="favorites_empty_subtitle">Ketuk ikon hati pada lagu untuk menambahkannya ke favorit.</string>
@@ -43,6 +47,9 @@
 
     <!-- Playlist detail / add songs -->
     <string name="add_songs">Tambah lagu</string>
+    <string name="add_to_playlist_title">Tambahkan ke</string>
+    <string name="share_song">Bagikan lagu</string>
+    <string name="cd_share">Bagikan</string>
     <string name="cd_already_added">Sudah ditambahkan</string>
     <string name="cd_add">Tambah</string>
 

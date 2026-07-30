@@ -5,16 +5,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import com.francotte.contentproviderformusic.R
 import com.francotte.contentproviderformusic.ui.MainViewModel
 import com.francotte.contentproviderformusic.ui.composable.HomeScreen
 import com.francotte.contentproviderformusic.ui.composable.LIBRARY_ROUTE
+import com.francotte.contentproviderformusic.ui.settings.SettingsDialog
 import com.francotte.contentproviderformusic.ui.state.MusicAppState
 
 fun NavController.navigateToLibraryScreen(navOptions: NavOptions? = null) {
@@ -54,10 +60,14 @@ fun LibraryRoute(
 
     val songs by mainViewModel.songs.collectAsStateWithLifecycle()
     val currentSong by mainViewModel.currentPlayingSong.collectAsStateWithLifecycle()
+    val isRepeatOneEnabled by mainViewModel.isRepeatOneEnabled.collectAsStateWithLifecycle()
+
+    var showSettings by rememberSaveable { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize()) {
         HomeScreen(
             modifier = Modifier.fillMaxSize(),
+            title = stringResource(R.string.library_title),
             windowSizeClass = windowSizeClass,
             appState = musicAppState,
             songs = songs,
@@ -80,7 +90,15 @@ fun LibraryRoute(
             },
             onToggleFavorite = { title, isFav ->
                 mainViewModel.updateFavoritesSongs(title,isFav)
-            })
+            },
+            onSettingsClick = { showSettings = true },
+            isRepeatOneEnabled = isRepeatOneEnabled,
+            onToggleRepeatOne = mainViewModel::toggleRepeatOne,
+            onAddToPlaylist = { mainViewModel.openAddToPlaylist() })
+
+        if (showSettings) {
+            SettingsDialog(mainViewModel = mainViewModel, onDismiss = { showSettings = false })
+        }
     }
 
 
