@@ -66,7 +66,9 @@ fun PlaylistDetailScreen(
     onToggleFavorite: (String, Boolean) -> Unit,
     onAddToPlaylist: () -> Unit = {},
     isRepeatOneEnabled: Boolean = false,
+    isShuffleEnabled: Boolean = false,
     onToggleRepeatOne: () -> Unit = {},
+    onToggleShuffle: () -> Unit = {},
 ) {
     var selectionMode by remember { mutableStateOf(false) }
     var selectedTitles by remember { mutableStateOf(emptySet<String>()) }
@@ -131,7 +133,9 @@ fun PlaylistDetailScreen(
             onClose = onClose,
             onToggleFavorite = onToggleFavorite,
             isRepeatOneEnabled = isRepeatOneEnabled,
+            isShuffleEnabled = isShuffleEnabled,
             onToggleRepeatOne = onToggleRepeatOne,
+            onToggleShuffle = onToggleShuffle,
             onAddToPlaylist = onAddToPlaylist,
             // Pas de bottom bar ici : on relève le mini player pour qu'il ne colle pas au bord bas.
             collapsedBottomInset = 20.dp,

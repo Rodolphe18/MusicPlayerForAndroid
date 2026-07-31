@@ -108,7 +108,9 @@ fun FullPlayer(
     onSeek: (Float) -> Unit,
     onToggleFavorite: (String, Boolean) -> Unit,
     isRepeatOneEnabled: Boolean = false,
+    isShuffleEnabled: Boolean = false,
     onToggleRepeatOne: () -> Unit = {},
+    onToggleShuffle: () -> Unit = {},
     onAddToPlaylist: () -> Unit = {}
 ) {
     val view = LocalView.current
@@ -135,7 +137,9 @@ fun FullPlayer(
         onSliderValueChanged = onSeek,
         onToggleFavorite = onToggleFavorite,
         isRepeatOneEnabled = isRepeatOneEnabled,
+        isShuffleEnabled = isShuffleEnabled,
         onToggleRepeatOne = onToggleRepeatOne,
+        onToggleShuffle = onToggleShuffle,
         onAddToPlaylist = onAddToPlaylist
     )
 }

@@ -60,6 +60,7 @@ fun FavoritesRoute(
     val favoriteSongs by mainViewModel.favoritesSongs.collectAsStateWithLifecycle()
     val currentSong by mainViewModel.currentPlayingSong.collectAsStateWithLifecycle()
     val isRepeatOneEnabled by mainViewModel.isRepeatOneEnabled.collectAsStateWithLifecycle()
+    val isShuffleEnabled by mainViewModel.isShuffleEnabled.collectAsStateWithLifecycle()
 
     var showSettings by rememberSaveable { mutableStateOf(false) }
 
@@ -92,7 +93,9 @@ fun FavoritesRoute(
             },
             onSettingsClick = { showSettings = true },
             isRepeatOneEnabled = isRepeatOneEnabled,
+            isShuffleEnabled = isShuffleEnabled,
             onToggleRepeatOne = mainViewModel::toggleRepeatOne,
+            onToggleShuffle = mainViewModel::toggleShuffle,
             onAddToPlaylist = { mainViewModel.openAddToPlaylist() },
             emptyContent = {
                 EmptyState(

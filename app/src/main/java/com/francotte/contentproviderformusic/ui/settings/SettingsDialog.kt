@@ -146,6 +146,9 @@ fun SettingsDialog(
 ) {
     val context = LocalContext.current
     val autoPlayOnStartup by mainViewModel.autoPlayOnStartup.collectAsStateWithLifecycle()
+    // Lu pendant la composition : un context.getString() dans le lambda ne serait pas
+    // réinvalidé par un changement de configuration (langue, notamment).
+    val ossLicensesTitle = stringResource(R.string.settings_oss_licenses)
 
     SettingsDialog(
         autoPlayOnStartup = autoPlayOnStartup,
@@ -156,7 +159,7 @@ fun SettingsDialog(
         onManageConsent = { context.findActivity()?.let(mainViewModel::showPrivacyOptions) },
         onContact = { context.sendEmail(CONTACT_EMAIL) },
         onOpenLicenses = {
-            OssLicensesMenuActivity.setActivityTitle(context.getString(R.string.settings_oss_licenses))
+            OssLicensesMenuActivity.setActivityTitle(ossLicensesTitle)
             context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
         },
         onDismiss = onDismiss,

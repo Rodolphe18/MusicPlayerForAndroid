@@ -9,6 +9,7 @@
     <!-- Common content descriptions -->
     <string name="cd_back">Indietro</string>
     <string name="cd_settings">Impostazioni</string>
+    <string name="cd_shuffle">Riproduzione casuale</string>
 
     <!-- Permissions (toasts) -->
     <string name="permissions_granted">Tutte le autorizzazioni concesse</string>

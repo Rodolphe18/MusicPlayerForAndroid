@@ -67,7 +67,9 @@ fun PlayerSheetScaffold(
     onToggleFavorite: (String, Boolean) -> Unit,
     onAddToPlaylist: () -> Unit = {},
     isRepeatOneEnabled: Boolean = false,
+    isShuffleEnabled: Boolean = false,
     onToggleRepeatOne: () -> Unit = {},
+    onToggleShuffle: () -> Unit = {},
     onExpandedChange: (Boolean) -> Unit = {},
     // Décale le mini-player replié vers le haut (utile quand il n'y a pas de bottom bar en
     // dessous : il ne reste pas collé au bord bas de l'écran). N'affecte pas le plein écran.
@@ -193,7 +195,9 @@ fun PlayerSheetScaffold(
                     onSeek = onSeek,
                     onToggleFavorite = onToggleFavorite,
                     isRepeatOneEnabled = isRepeatOneEnabled,
+                    isShuffleEnabled = isShuffleEnabled,
                     onToggleRepeatOne = onToggleRepeatOne,
+                    onToggleShuffle = onToggleShuffle,
                     onAddToPlaylist = onAddToPlaylist
                 )
             }
@@ -220,7 +224,9 @@ fun FloatingPlayerHost(
     onToggleFavorite: (String, Boolean) -> Unit,
     onAddToPlaylist: () -> Unit = {},
     isRepeatOneEnabled: Boolean = false,
+    isShuffleEnabled: Boolean = false,
     onToggleRepeatOne: () -> Unit = {},
+    onToggleShuffle: () -> Unit = {},
     onExpandedChange: (Boolean) -> Unit = {},
     overlayContent: @Composable BoxScope.() -> Unit = {},
     header: (@Composable () -> Unit)? = null,
@@ -238,7 +244,9 @@ fun FloatingPlayerHost(
         onClose = onClose,
         onToggleFavorite = onToggleFavorite,
         isRepeatOneEnabled = isRepeatOneEnabled,
+        isShuffleEnabled = isShuffleEnabled,
         onToggleRepeatOne = onToggleRepeatOne,
+        onToggleShuffle = onToggleShuffle,
         onExpandedChange = onExpandedChange,
         onAddToPlaylist = onAddToPlaylist,
         collapsedBottomInset = collapsedBottomInset,

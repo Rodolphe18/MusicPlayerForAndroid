@@ -37,6 +37,7 @@ fun NavGraphBuilder.playlistsGraph(
         val isPlaying by mainViewModel.isPlaying.collectAsStateWithLifecycle()
         val sliderValue by mainViewModel.currentDuration.collectAsStateWithLifecycle()
         val isRepeatOneEnabled by mainViewModel.isRepeatOneEnabled.collectAsStateWithLifecycle()
+        val isShuffleEnabled by mainViewModel.isShuffleEnabled.collectAsStateWithLifecycle()
         PlaylistsScreen(
             appState = appState,
             playlists = playlists,
@@ -54,7 +55,9 @@ fun NavGraphBuilder.playlistsGraph(
             onToggleFavorite = { title, isFav -> mainViewModel.updateFavoritesSongs(title, isFav) },
             onAddToPlaylist = { mainViewModel.openAddToPlaylist() },
             isRepeatOneEnabled = isRepeatOneEnabled,
+            isShuffleEnabled = isShuffleEnabled,
             onToggleRepeatOne = mainViewModel::toggleRepeatOne,
+            onToggleShuffle = mainViewModel::toggleShuffle,
         )
     }
 
@@ -82,6 +85,7 @@ fun NavGraphBuilder.playlistsGraph(
         val isPlaying by mainViewModel.isPlaying.collectAsStateWithLifecycle()
         val sliderValue by mainViewModel.currentDuration.collectAsStateWithLifecycle()
         val isRepeatOneEnabled by mainViewModel.isRepeatOneEnabled.collectAsStateWithLifecycle()
+        val isShuffleEnabled by mainViewModel.isShuffleEnabled.collectAsStateWithLifecycle()
         val playlist = playlists.find { it.id == playlistId }
         val playlistAccent = playlistAccentFor(
             playlists.indexOfFirst { it.id == playlistId }.coerceAtLeast(0),
@@ -108,7 +112,9 @@ fun NavGraphBuilder.playlistsGraph(
             onToggleFavorite = { title, isFav -> mainViewModel.updateFavoritesSongs(title, isFav) },
             onAddToPlaylist = { mainViewModel.openAddToPlaylist() },
             isRepeatOneEnabled = isRepeatOneEnabled,
+            isShuffleEnabled = isShuffleEnabled,
             onToggleRepeatOne = mainViewModel::toggleRepeatOne,
+            onToggleShuffle = mainViewModel::toggleShuffle,
         )
     }
 

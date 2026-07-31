@@ -48,7 +48,9 @@ fun HomeScreen(
     onSettingsClick: () -> Unit = {},
     onAddToPlaylist: () -> Unit = {},
     isRepeatOneEnabled: Boolean = false,
+    isShuffleEnabled: Boolean = false,
     onToggleRepeatOne: () -> Unit = {},
+    onToggleShuffle: () -> Unit = {},
     emptyContent: @Composable () -> Unit = {}
 ) {
     var searchActive by rememberSaveable { mutableStateOf(false) }
@@ -128,7 +130,9 @@ fun HomeScreen(
             onClose = onClose,
             onToggleFavorite = onToggleFavorite,
             isRepeatOneEnabled = isRepeatOneEnabled,
+            isShuffleEnabled = isShuffleEnabled,
             onToggleRepeatOne = onToggleRepeatOne,
+            onToggleShuffle = onToggleShuffle,
             onAddToPlaylist = onAddToPlaylist,
             emptyContent = {
                 // Liste vide : soit la source est vide (ex. aucun favori), soit la

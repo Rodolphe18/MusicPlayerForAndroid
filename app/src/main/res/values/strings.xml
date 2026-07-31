@@ -9,6 +9,7 @@
     <!-- Common content descriptions -->
     <string name="cd_back">Back</string>
     <string name="cd_settings">Settings</string>
+    <string name="cd_shuffle">Shuffle</string>
 
     <!-- Permissions (toasts) -->
     <string name="permissions_granted">All permissions are granted</string>

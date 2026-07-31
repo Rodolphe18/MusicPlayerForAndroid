@@ -24,11 +24,13 @@ android {
     // Le namespace reste l'ancien : c'est la racine des packages Kotlin, la changer
     // imposerait un refactor complet sans bénéfice. Seul applicationId est public.
     namespace = "com.francotte.contentproviderformusic"
+    //noinspection GradleDependency
     compileSdk = 36
 
     defaultConfig {
         applicationId = "com.francotte.musicplayer"
-        minSdk = 26
+        minSdk = 23
+        //noinspection OldTargetApi
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"

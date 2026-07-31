@@ -72,7 +72,9 @@ fun PlaylistsScreen(
     onToggleFavorite: (String, Boolean) -> Unit,
     onAddToPlaylist: () -> Unit = {},
     isRepeatOneEnabled: Boolean = false,
+    isShuffleEnabled: Boolean = false,
     onToggleRepeatOne: () -> Unit = {},
+    onToggleShuffle: () -> Unit = {},
 ) {
     var selectionMode by remember { mutableStateOf(false) }
     var selectedIds by remember { mutableStateOf(emptySet<Long>()) }
@@ -108,7 +110,9 @@ fun PlaylistsScreen(
             onClose = onClose,
             onToggleFavorite = onToggleFavorite,
             isRepeatOneEnabled = isRepeatOneEnabled,
+            isShuffleEnabled = isShuffleEnabled,
             onToggleRepeatOne = onToggleRepeatOne,
+            onToggleShuffle = onToggleShuffle,
             onAddToPlaylist = onAddToPlaylist,
             collapsedBottomInset = BottomBarHeight,
             overlayContent = {

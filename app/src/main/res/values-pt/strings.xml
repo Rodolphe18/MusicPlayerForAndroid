@@ -9,6 +9,7 @@
     <!-- Common content descriptions -->
     <string name="cd_back">Voltar</string>
     <string name="cd_settings">Configurações</string>
+    <string name="cd_shuffle">Reprodução aleatória</string>
 
     <!-- Permissions (toasts) -->
     <string name="permissions_granted">Todas as permissões concedidas</string>

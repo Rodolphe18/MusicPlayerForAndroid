@@ -46,6 +46,7 @@ class MainViewModel @Inject constructor(
     val permissionGranted = _permissionsGranted.asStateFlow()
     val isPlaying = MutableStateFlow(false)
     val isRepeatOneEnabled = MutableStateFlow(false)
+    val isShuffleEnabled = MutableStateFlow(false)
     val isLoading = MutableStateFlow(true)
 
     // Maintient le splash screen affiché tant que l'interstitiel n'est pas apparu (ou résolu
@@ -72,6 +73,10 @@ class MainViewModel @Inject constructor(
 
         override fun onRepeatModeChanged(repeatMode: Int) {
             isRepeatOneEnabled.value = repeatMode == Player.REPEAT_MODE_ONE
+        }
+
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            isShuffleEnabled.value = shuffleModeEnabled
         }
     }
 
@@ -185,6 +190,7 @@ class MainViewModel @Inject constructor(
         startProgressUpdates()
         listener.onEvents(ctrl, Player.Events(FlagSet.Builder().build()))
         isRepeatOneEnabled.value = ctrl.repeatMode == Player.REPEAT_MODE_ONE
+        isShuffleEnabled.value = ctrl.shuffleModeEnabled
         isLoading.value = false
     }
 
@@ -212,6 +218,12 @@ class MainViewModel @Inject constructor(
             Player.REPEAT_MODE_ONE
         }
     }
+    // Media3 gère l'ordre aléatoire dans le player : suivant/précédent suivent l'ordre
+    // mélangé sans que la file (_playQueue) ni son affichage soient modifiés.
+    fun toggleShuffle() = controller?.let { player ->
+        player.shuffleModeEnabled = !player.shuffleModeEnabled
+    }
+
     fun stopSong() = controller?.stop()
 
     fun onSeekBarValueChanged(progress: Float) =

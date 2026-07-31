@@ -69,6 +69,8 @@ fun SongBody(
     onAddToPlaylist: () -> Unit = {},
     isRepeatOneEnabled: Boolean = false,
     onToggleRepeatOne: () -> Unit = {},
+    isShuffleEnabled: Boolean = false,
+    onToggleShuffle: () -> Unit = {},
 ) {
     val context = LocalContext.current
     Column(
@@ -157,12 +159,17 @@ fun SongBody(
                     )
                 }
             }
-            Icon(
-                painter = painterResource(R.drawable.ic_shuffle),
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(22.dp),
-            )
+            IconButton(
+                modifier = Modifier.size(40.dp),
+                onClick = onToggleShuffle,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_shuffle),
+                    contentDescription = stringResource(R.string.cd_shuffle),
+                    tint = if (isShuffleEnabled) Aurora.VividCoral else Color.White,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
         }
         Spacer(Modifier.height(36.dp))
         CustomSlider(song, Color.White, Color.White, Color.White, sliderValue, onSliderValueChanged)

@@ -9,6 +9,7 @@
     <!-- Common content descriptions -->
     <string name="cd_back">뒤로</string>
     <string name="cd_settings">설정</string>
+    <string name="cd_shuffle">셔플</string>
 
     <!-- Permissions (toasts) -->
     <string name="permissions_granted">모든 권한이 허용되었습니다</string>
