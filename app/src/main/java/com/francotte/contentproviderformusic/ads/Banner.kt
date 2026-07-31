@@ -70,7 +70,7 @@ fun Banner(
     heightFallback: Dp,
 ) {
     val bannerConfig = BannerConfig(
-        adUnitId = "ca-app-pub-8828725570000941/6101020827",
+        adUnitId = "ca-app-pub-8828725570000941/4886746155",
         adSizes = listOf(AdSize.BANNER),
     )
     val context = LocalContext.current

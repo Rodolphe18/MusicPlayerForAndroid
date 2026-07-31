@@ -56,7 +56,7 @@ class InterstitialManager @Inject constructor(
                 val loadResultOrNull =
                     withTimeoutOrNull(3000) {
                         withContext(Dispatchers.Main.immediate) {
-                            activity.loadInterstitialAd("ca-app-pub-8828725570000941/7675022600", adRequest)
+                            activity.loadInterstitialAd("ca-app-pub-8828725570000941/9767537748", adRequest)
                         }
                     }
 

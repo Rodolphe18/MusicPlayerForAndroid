@@ -2,7 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <!-- Lecture des fichiers audio locaux : READ_EXTERNAL_STORAGE est ignoré à partir
+         d'Android 13 (API 33), remplacé par READ_MEDIA_AUDIO. -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
@@ -24,7 +29,7 @@
         <!-- App ID AdMob : requis, sinon MobileAds.initialize fait crasher l'app au démarrage. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-8828725570000941~7866594296" />
+            android:value="ca-app-pub-8828725570000941~7332946095" />
 
         <activity
             android:name=".ui.MainActivity"
