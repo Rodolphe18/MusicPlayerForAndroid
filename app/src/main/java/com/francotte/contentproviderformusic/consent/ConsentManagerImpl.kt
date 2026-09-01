@@ -2,11 +2,10 @@ package com.francotte.contentproviderformusic.consent
 
 import android.app.Activity
 import android.content.Context
-import android.os.Bundle
 import android.util.Log
 import com.francotte.contentproviderformusic.BuildConfig
-import com.google.ads.mediation.admob.AdMobAdapter
 import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.MobileAds
 import com.google.android.ump.ConsentDebugSettings
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
@@ -20,6 +19,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -37,15 +37,37 @@ private val TEST_DEVICE_HASHED_IDS = listOf("A5668C9D1F2BD913300A4D46940BF2A3")
 class ConsentManagerImpl @Inject constructor(@param:ApplicationContext private val appContext: Context) :
     ConsentManager {
     private val _state = MutableStateFlow<ConsentState>(ConsentState.Idle)
-    val state: StateFlow<ConsentState> = _state.asStateFlow()
+    override val state: StateFlow<ConsentState> = _state.asStateFlow()
 
     private val mutex = Mutex()
+    private val mobileAdsInitialized = AtomicBoolean(false)
 
     private val consentInformation: ConsentInformation by lazy {
         UserMessagingPlatform.getConsentInformation(appContext)
     }
 
-    suspend fun updateConsentInfo(activity: Activity): ConsentState.Ready =
+    /** Initialise le SDK Ads une seule fois, hors thread principal (opération I/O). */
+    private suspend fun initializeMobileAdsOnce() {
+        if (!mobileAdsInitialized.compareAndSet(false, true)) return
+        withContext(Dispatchers.IO) {
+            suspendCancellableCoroutine { cont ->
+                MobileAds.initialize(appContext) { if (cont.isActive) cont.resume(Unit) }
+            }
+        }
+    }
+
+    /**
+     * Lit canRequestAds en garantissant que le SDK Ads est initialisé AVANT de renvoyer
+     * true. L'UI compose la bannière sur ce signal : l'inverser exposerait à une requête
+     * publicitaire émise avant l'initialisation.
+     */
+    private suspend fun resolveCanRequestAds(): Boolean {
+        val canRequestAds = consentInformation.canRequestAds()
+        if (canRequestAds) initializeMobileAdsOnce()
+        return canRequestAds
+    }
+
+    suspend fun updateConsentInfo(activity: Activity): ConsentState =
         mutex.withLock {
             val current = _state.value
             if (current is ConsentState.Ready) return current
@@ -74,10 +96,12 @@ class ConsentManagerImpl @Inject constructor(@param:ApplicationContext private v
 
             val params = paramsBuilder.build()
 
+            var failed = false
             withContext(Dispatchers.Main.immediate) {
                 try {
                     activity.requestConsentInfoUpdateSuspend(consentInformation, params)
                 } catch (t: Throwable) {
+                    failed = true
                     Log.e("DEBUG_UMP", "requestConsentInfoUpdate FAILED", t)
                 }
                 Log.d(
@@ -86,7 +110,16 @@ class ConsentManagerImpl @Inject constructor(@param:ApplicationContext private v
                 )
             }
 
-            val ready = ConsentState.Ready(canRequestAds = consentInformation.canRequestAds())
+            if (failed) {
+                // Sans réponse du CMP, canRequestAds() vaut true par défaut (statut UNKNOWN) :
+                // s'y fier reviendrait à diffuser des annonces sans consentement. On refuse.
+                // L'état n'est volontairement PAS mis en cache, pour qu'une panne transitoire
+                // soit réessayée au prochain appel plutôt que de bloquer toute la session.
+                _state.value = ConsentState.Idle
+                return ConsentState.Failed
+            }
+
+            val ready = ConsentState.Ready(canRequestAds = resolveCanRequestAds())
             _state.value = ready
             ready
         }
@@ -95,19 +128,20 @@ class ConsentManagerImpl @Inject constructor(@param:ApplicationContext private v
         withContext(Dispatchers.Main.immediate) {
             activity.showConsentFormIfRequiredSuspend()
         }
+        val canRequestAds = resolveCanRequestAds()
         mutex.withLock {
             val current = _state.value
             if (current is ConsentState.Ready) {
-                _state.value =
-                    current.copy(
-                        canRequestAds = consentInformation.canRequestAds(),
-                    )
+                _state.value = current.copy(canRequestAds = canRequestAds)
             }
         }
     }
 
     override suspend fun ensureConsent(activity: Activity): Boolean {
-        updateConsentInfo(activity)
+        // Ready(canRequestAds = false) n'est PAS un échec : c'est « consentement requis »,
+        // et c'est justement showConsentIfRequired qui affiche le formulaire. Seul Failed
+        // (CMP injoignable) doit couper les annonces.
+        if (updateConsentInfo(activity) is ConsentState.Failed) return false
         showConsentIfRequired(activity)
         return consentInformation.canRequestAds()
     }
@@ -125,27 +159,21 @@ class ConsentManagerImpl @Inject constructor(@param:ApplicationContext private v
                 cont.invokeOnCancellation { /* no-op */ }
             }
         }
+        val canRequestAds = resolveCanRequestAds()
         mutex.withLock {
             val current = _state.value
             if (current is ConsentState.Ready) {
-                _state.value = current.copy(canRequestAds = consentInformation.canRequestAds())
+                _state.value = current.copy(canRequestAds = canRequestAds)
             }
         }
     }
 
-    override fun buildAdRequest(): AdRequest {
-        val gdprApplies = consentInformation.canRequestAds()
-
-        return if (gdprApplies) {
-            AdRequest.Builder().build()
-        } else {
-            val extras = Bundle().apply { putString("npa", "1") }
-            AdRequest
-                .Builder()
-                .addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
-                .build()
-        }
-    }
+    /**
+     * Avec l'UMP, le SDK Google Mobile Ads lit lui-même la chaîne de consentement TCF et
+     * choisit annonces personnalisées ou non. L'extra « npa=1 » est l'approche pré-UMP et
+     * ferait doublon. À n'appeler qu'après avoir vérifié canRequestAds().
+     */
+    override fun buildAdRequest(): AdRequest = AdRequest.Builder().build()
 
     fun resetForDebug() {
         consentInformation.reset()

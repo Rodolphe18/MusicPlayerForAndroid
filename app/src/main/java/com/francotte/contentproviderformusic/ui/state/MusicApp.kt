@@ -78,11 +78,18 @@ fun MusicApp(mainViewModel: MainViewModel, windowSizeClass: WindowSizeClass) {
             }
         }
 
-        Banner(
-            useAdaptiveSize = false,
-            horizontalPadding = 0.dp,
-            heightFallback = 50.dp,
-        )
+        // La bannière n'est composée qu'une fois le CMP résolu et les annonces autorisées :
+        // la composer plus tôt déclencherait une requête publicitaire avant le consentement.
+        val canShowAds by mainViewModel.canShowAds.collectAsStateWithLifecycle()
+        if (canShowAds) {
+            val adRequest = remember(canShowAds) { mainViewModel.buildAdRequest() }
+            Banner(
+                useAdaptiveSize = false,
+                horizontalPadding = 0.dp,
+                heightFallback = 50.dp,
+                adRequest = adRequest,
+            )
+        }
     }
 }
 

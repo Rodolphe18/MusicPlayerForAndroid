@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import com.google.android.gms.ads.MobileAds
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
@@ -20,9 +19,9 @@ class MusicApplication: Application() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Initialisation du SDK Google Mobile Ads (opération I/O -> hors du thread principal).
-        // Le consentement (UMP) est géré séparément dans ConsentManager au moment de l'affichage.
-        Thread { MobileAds.initialize(this) }.start()
+        // Le SDK Google Mobile Ads n'est volontairement PAS initialisé ici : Google demande
+        // de ne l'initialiser qu'une fois le consentement recueilli. C'est ConsentManagerImpl
+        // qui s'en charge, juste avant de signaler que les annonces sont autorisées.
     }
 
 }

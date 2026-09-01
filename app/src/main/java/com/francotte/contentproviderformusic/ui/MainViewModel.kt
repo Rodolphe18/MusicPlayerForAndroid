@@ -10,6 +10,8 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.francotte.contentproviderformusic.consent.ConsentManager
+import com.francotte.contentproviderformusic.consent.ConsentState
+import com.google.android.gms.ads.AdRequest
 import com.francotte.contentproviderformusic.data.UserDataRepository
 import com.francotte.contentproviderformusic.domain.FavoritesUseCase
 import com.francotte.contentproviderformusic.domain.PlaylistsUseCase
@@ -105,6 +107,15 @@ class MainViewModel @Inject constructor(
     fun closeAddToPlaylist() {
         _addToPlaylistSong.value = null
     }
+
+    // Vrai seulement une fois le CMP résolu ET les annonces autorisées. Tant que c'est
+    // faux, aucune surface publicitaire ne doit être composée : c'est ce qui empêche la
+    // bannière de partir en requête avant le consentement.
+    val canShowAds: StateFlow<Boolean> = consentManager.state
+        .map { it is ConsentState.Ready && it.canRequestAds }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun buildAdRequest(): AdRequest = consentManager.buildAdRequest()
 
     // Consentement publicitaire (RGPD) exposé aux Settings.
     fun isPrivacyOptionsRequired(): Boolean = consentManager.isPrivacyOptionsRequired()

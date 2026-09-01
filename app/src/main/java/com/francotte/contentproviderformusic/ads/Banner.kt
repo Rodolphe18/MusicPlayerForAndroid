@@ -63,11 +63,17 @@ private fun Dp.getAdSizeFromHeight(): AdSize =
     }
 
 
+/**
+ * N'appeler qu'une fois le consentement résolu et les annonces autorisées : ce composable
+ * lance la requête dès son entrée en composition. [adRequest] doit provenir du
+ * ConsentManager, jamais d'un AdRequest.Builder() brut.
+ */
 @Composable
 fun Banner(
     useAdaptiveSize: Boolean,
     horizontalPadding: Dp,
     heightFallback: Dp,
+    adRequest: AdRequest,
 ) {
     val bannerConfig = BannerConfig(
         adUnitId = "ca-app-pub-8828725570000941/4886746155",
@@ -117,7 +123,7 @@ fun Banner(
         }
 
     DisposableEffect(adView) {
-        adView.loadAd(AdRequest.Builder().build())
+        adView.loadAd(adRequest)
         onDispose {
             adView.destroy()
         }

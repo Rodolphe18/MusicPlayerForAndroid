@@ -2,8 +2,12 @@ package com.francotte.contentproviderformusic.consent
 
 import android.app.Activity
 import com.google.android.gms.ads.AdRequest
+import kotlinx.coroutines.flow.StateFlow
 
 interface ConsentManager {
+    /** État courant, observable par l'UI pour ne composer les annonces qu'une fois résolu. */
+    val state: StateFlow<ConsentState>
+
     suspend fun ensureConsent(activity: Activity): Boolean
     fun buildAdRequest(): AdRequest
 
