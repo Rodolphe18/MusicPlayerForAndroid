@@ -19,4 +19,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.hilt.plugin) apply false
     alias(libs.plugins.ksp) apply false
+    // Firebase : appliques conditionnellement dans app/build.gradle.kts,
+    // uniquement si google-services.json est present (voir le commentaire la-bas).
+    alias(libs.plugins.google.services) apply false
+    alias(libs.plugins.firebase.crashlytics) apply false
 }

@@ -11,6 +11,22 @@ plugins {
     id("com.google.android.gms.oss-licenses-plugin")
 }
 
+// Firebase (Crashlytics) : le plugin google-services echoue le build si
+// google-services.json est absent. Comme keystore.properties, ce fichier n'est pas
+// versionne ; on applique donc les plugins seulement s'il est la, pour qu'un clone
+// sans configuration Firebase reste buildable. Sans lui, le SDK est embarque mais
+// inerte : aucun rapport de plantage ne remonte.
+val googleServicesFile = project.file("google-services.json")
+if (googleServicesFile.exists()) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
+} else {
+    logger.warn(
+        "google-services.json absent de app/ : Crashlytics est DESACTIVE pour ce build. " +
+        "Telecharger le fichier depuis la console Firebase avant toute release."
+    )
+}
+
 // Secrets de signature : jamais versionnés (voir keystore.properties.template).
 // Absent = build release non signé, ce qui reste utilisable en local.
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -130,6 +146,10 @@ dependencies {
     implementation(libs.play.services.ads.lite)
     implementation(libs.play.services.ads.identifier)
     implementation(libs.play.services.oss.licenses)
+
+    // La BOM aligne les versions des SDK Firebase entre eux.
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
     implementation(libs.androidx.appcompat)
 }
 
