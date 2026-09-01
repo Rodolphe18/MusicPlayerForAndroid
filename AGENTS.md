@@ -161,6 +161,13 @@ motif de rejet ; les scripts rognent cette zone.
 L'app diffuse des publicités : la case « Cette application contient des annonces »
 doit rester cochée dans la Play Console, et le consentement UMP est obligatoire.
 
+## Journal des modifications
+
+`CHANGELOG.md` retrace les corrections et ajouts depuis la première release, et
+alimente la demande d'accès à la production dans la Play Console. **Toute correction
+issue d'un retour de testeur doit y être consignée** : Google demande explicitement
+ce que les tests fermés ont révélé et ce qui a été changé en conséquence.
+
 ## Git
 
 - **Ne jamais ajouter de trailer `Co-Authored-By`** aux messages de commit.
