@@ -70,4 +70,9 @@
     <string name="settings_contact">Связаться с нами</string>
     <string name="settings_oss_licenses">Лицензии с открытым исходным кодом</string>
     <string name="close">Закрыть</string>
+
+    <!-- Permission audio refusee -->
+    <string name="permission_required_title">Требуется доступ к вашей музыке</string>
+    <string name="permission_required_message">Приложению нужен доступ к аудиофайлам на устройстве, чтобы показать вашу фонотеку. Ни один файл не покидает телефон.</string>
+    <string name="permission_open_settings">Открыть настройки</string>
 </resources>

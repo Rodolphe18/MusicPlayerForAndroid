@@ -70,4 +70,9 @@
     <string name="settings_contact">Hubungi kami</string>
     <string name="settings_oss_licenses">Lisensi sumber terbuka</string>
     <string name="close">Tutup</string>
+
+    <!-- Permission audio refusee -->
+    <string name="permission_required_title">Akses ke musik Anda diperlukan</string>
+    <string name="permission_required_message">Aplikasi memerlukan akses ke file audio di perangkat Anda untuk menampilkan pustaka Anda. Tidak ada file yang keluar dari ponsel Anda.</string>
+    <string name="permission_open_settings">Buka setelan</string>
 </resources>

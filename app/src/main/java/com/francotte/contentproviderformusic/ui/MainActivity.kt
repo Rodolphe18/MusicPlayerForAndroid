@@ -2,10 +2,11 @@ package com.francotte.contentproviderformusic.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.Window
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -32,11 +33,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
-import com.francotte.contentproviderformusic.R
 import com.francotte.contentproviderformusic.ads.InterstitialAdState
 import com.francotte.contentproviderformusic.ads.InterstitialManager
 import com.francotte.contentproviderformusic.repository.SongsFetcherRepository
 import com.francotte.contentproviderformusic.service.MusicService
+import com.francotte.contentproviderformusic.ui.composable.PermissionRequiredScreen
 import com.francotte.contentproviderformusic.ui.composable.rememberMediaController
 import com.francotte.contentproviderformusic.ui.state.MusicApp
 import com.francotte.contentproviderformusic.ui.state.rememberMusicAppState
@@ -147,22 +148,43 @@ class MainActivity : ComponentActivity() {
                 }
                 if (permissionGranted) {
                     MusicApp(mainViewModel,calculateWindowSizeClass(this))
+                } else {
+                    // Toujours afficher quelque chose : sans cette branche, un refus
+                    // laissait l'utilisateur devant un ecran blanc definitif.
+                    PermissionRequiredScreen(onOpenSettings = ::openAppSettings)
                 }
             }
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // L'utilisateur a pu accorder (ou revoquer) l'acces depuis les reglages Android
+        // pendant que l'app etait en arriere-plan : le resultat du dialogue seul ne suffit pas.
+        mainViewModel.updatePermissionStatus(PermissionManager.hasAudioPermission(this))
+    }
+
+    /** Ouvre la fiche de l'app dans les reglages, seul endroit ou reactiver une permission refusee. */
+    private fun openAppSettings() {
+        startActivity(
+            Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.fromParts("package", packageName, null),
+            )
+        )
+    }
+
     private fun requestPermissions() {
         val multiplePermissionsContract =
-            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionsStatusMap ->
-                if (!permissionsStatusMap.containsValue(false)) {
-                    // all permissions are accepted
-                    Toast.makeText(this, getString(R.string.permissions_granted), Toast.LENGTH_SHORT).show()
-                    mainViewModel.updatePermissionStatus()
-                } else {
-                    Toast.makeText(this, getString(R.string.permissions_denied), Toast.LENGTH_SHORT)
-                        .show()
-                    // Pas d'annonce sans permission : on ne bloque pas le splash.
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
+                // On ne teste plus "toutes accordees" : refuser les notifications ne doit
+                // pas masquer la bibliotheque. Seul l'acces audio est determinant, et on
+                // lit l'etat systeme plutot que la reponse du dialogue.
+                val granted = PermissionManager.hasAudioPermission(this)
+                mainViewModel.updatePermissionStatus(granted)
+                if (!granted) {
+                    // Aucune annonce sans permission : on relache le splash pour laisser
+                    // apparaitre l'ecran d'explication.
                     mainViewModel.releaseSplash()
                 }
             }

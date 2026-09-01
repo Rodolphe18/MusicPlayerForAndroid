@@ -211,8 +211,13 @@ class MainViewModel @Inject constructor(
         controller = null
     }
 
-    fun updatePermissionStatus() {
-        _permissionsGranted.value = true
+    /**
+     * Reflète l'état réel du système plutôt que le seul résultat du dialogue : une
+     * permission peut être accordée — ou révoquée — depuis les réglages Android
+     * pendant que l'app est en arrière-plan.
+     */
+    fun updatePermissionStatus(granted: Boolean) {
+        _permissionsGranted.value = granted
     }
 
     fun releaseSplash() {

@@ -70,4 +70,9 @@
     <string name="settings_contact">문의하기</string>
     <string name="settings_oss_licenses">오픈소스 라이선스</string>
     <string name="close">닫기</string>
+
+    <!-- Permission audio refusee -->
+    <string name="permission_required_title">음악 접근 권한이 필요합니다</string>
+    <string name="permission_required_message">라이브러리를 표시하려면 기기의 오디오 파일에 접근해야 합니다. 파일이 휴대전화 밖으로 전송되지 않습니다.</string>
+    <string name="permission_open_settings">설정 열기</string>
 </resources>

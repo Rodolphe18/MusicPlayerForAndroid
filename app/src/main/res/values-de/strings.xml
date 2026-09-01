@@ -70,4 +70,9 @@
     <string name="settings_contact">Kontakt</string>
     <string name="settings_oss_licenses">Open-Source-Lizenzen</string>
     <string name="close">Schließen</string>
+
+    <!-- Permission audio refusee -->
+    <string name="permission_required_title">Zugriff auf deine Musik erforderlich</string>
+    <string name="permission_required_message">Die App benötigt Zugriff auf die Audiodateien auf deinem Gerät, um deine Bibliothek anzuzeigen. Keine Datei verlässt dein Telefon.</string>
+    <string name="permission_open_settings">Einstellungen öffnen</string>
 </resources>

@@ -70,4 +70,9 @@
     <string name="settings_contact">お問い合わせ</string>
     <string name="settings_oss_licenses">オープンソースライセンス</string>
     <string name="close">閉じる</string>
+
+    <!-- Permission audio refusee -->
+    <string name="permission_required_title">音楽へのアクセスが必要です</string>
+    <string name="permission_required_message">ライブラリを表示するには、デバイス内の音声ファイルへのアクセスが必要です。ファイルが端末の外に送信されることはありません。</string>
+    <string name="permission_open_settings">設定を開く</string>
 </resources>

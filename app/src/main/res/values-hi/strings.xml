@@ -70,4 +70,9 @@
     <string name="settings_contact">हमसे संपर्क करें</string>
     <string name="settings_oss_licenses">ओपन सोर्स लाइसेंस</string>
     <string name="close">बंद करें</string>
+
+    <!-- Permission audio refusee -->
+    <string name="permission_required_title">आपके संगीत तक पहुँच आवश्यक है</string>
+    <string name="permission_required_message">आपकी लाइब्रेरी दिखाने के लिए ऐप को आपके डिवाइस की ऑडियो फ़ाइलों तक पहुँच चाहिए। कोई भी फ़ाइल आपके फ़ोन से बाहर नहीं जाती।</string>
+    <string name="permission_open_settings">सेटिंग्स खोलें</string>
 </resources>
