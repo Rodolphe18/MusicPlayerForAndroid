@@ -75,6 +75,11 @@ module unique, KSP ne voit pas les classes proto générées et Hilt échoue sur
 `error.NonExistentClass` autour de `UserPreferences`. Le bloc ajoute explicitement
 les dossiers proto générés aux sources de la tâche KSP. Le supprimer casse le build.
 
+**R8 peut faire perdre les données des utilisateurs.** Les classes proto
+générées résolvent leurs champs par réflexion, sur leur nom. La règle
+`-keepclassmembers` d'`app/proguard-rules.pro` les protège du renommage : la
+retirer vide les favoris et les playlists à la mise à jour. Voir *Minification (R8)*.
+
 **`Aurora.Purple` n'est pas violette.** C'est le corail `#E85D54`, l'accent
 principal (boutons, onglet actif, pastilles). Le nom est historique et référencé
 partout ; le renommer est un refactor à part entière, pas un effet de bord. Palette
@@ -116,6 +121,53 @@ textes du Play Store suivent la même règle.
 et la résolution des playlists. `ExampleUnitTest` et `ExampleInstrumentedTest` sont
 les gabarits d'origine, sans valeur.
 
+## Minification (R8)
+
+`isMinifyEnabled` et `isShrinkResources` sont à `true` en release : l'AAB passe de
+16,8 Mo à 12,7 Mo (−24 %). Les règles tiennent dans `app/proguard-rules.pro` et se
+limitent volontairement à deux blocs — la quasi-totalité des dépendances (Media3,
+OkHttp, Hilt/Dagger, coroutines, play-services-ads, AppCompat, Navigation, Room,
+WorkManager) embarquent leurs propres « consumer rules » dans leur AAR.
+
+**La règle proto est vitale.** Ni `protobuf-javalite`, ni `protobuf-kotlin-lite`,
+ni `androidx.datastore` n'embarquent la moindre règle, alors que les classes
+générées déclarent leur schéma **par nom de champ** dans `dynamicMethod()` :
+
+```java
+objects = { "favoriteTitles_", ..., "playlists_", ..., "autoplayDisabled_" };
+```
+
+Le runtime protobuf-lite les résout ensuite par réflexion. Si R8 les renomme,
+`UserPreferencesSerializer.readFrom()` ne sait plus relire le fichier : **les
+favoris et les playlists de tous les utilisateurs sont perdus à la mise à jour**.
+D'où la seule règle qui protège vraiment quelque chose ici :
+
+```proguard
+-keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite { <fields>; }
+```
+
+Après toute modification de `user_preferences.proto`, contrôler dans
+`app/build/outputs/mapping/release/mapping.txt` que les champs ressortent
+inchangés (`favoriteTitles_ -> favoriteTitles_`). Le renommage de la classe
+elle-même est sans risque : elle n'est jamais chargée par son nom.
+
+**Ne pas ajouter de `res/raw/keep.xml` pour les licences OSS.**
+`OssLicensesMenuActivity` charge `res/raw/third_party_licenses` via
+`Resources.getIdentifier()`, ce que le resource shrinker ne voit pas — mais le
+plugin oss-licenses génère déjà `raw/keep_third_party_licenses.xml` qui les
+protège. Un second fichier ferait doublon.
+
+**Après tout ajout de dépendance**, lancer un `bundleRelease` et vérifier
+l'apparition de `app/build/outputs/mapping/release/missing_rules.txt` : R8 y écrit
+les `-dontwarn` qu'il réclame, prêts à copier. Il n'existe pas aujourd'hui, aucune
+référence ne manque. Ne jamais le recopier en bloc sans le lire : un `-dontwarn`
+posé sur une classe du projet masquerait un vrai `NoClassDefFoundError` au lieu de
+le corriger.
+
+**Tester l'APK minifié avant publication** (`./gradlew installRelease`), en
+particulier le parcours favoris/playlists : une règle manquante ne se manifeste
+qu'à l'exécution, jamais au build.
+
 ## Firebase Crashlytics
 
 Branché via la BOM Firebase (`libs.firebase.bom`), sans Analytics — Crashlytics
@@ -143,8 +195,10 @@ aligner Crashlytics sur ce comportement, il faudrait `firebase_crashlytics_colle
 le consentement obtenu — au prix des plantages du tout premier démarrage, qui ne
 remonteraient plus.
 
-`isMinifyEnabled = false` : les traces sont déjà lisibles, aucun mapping à envoyer.
-Si R8 est activé un jour, l'upload du mapping est automatique en release.
+R8 étant actif (voir **Minification (R8)**), `proguard-rules.pro` conserve
+`SourceFile` et `LineNumberTable`, et la tâche `uploadCrashlyticsMappingFileRelease`
+envoie le `mapping.txt` à chaque `bundleRelease` : les traces restent lisibles en
+console.
 
 Conséquences hors code : la **Sécurité des données** de la Play Console doit
 déclarer les rapports de plantage, et la politique de confidentialité mentionner
