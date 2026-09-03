@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt.plugin)
     alias(libs.plugins.ksp)
     alias(libs.plugins.protobuf)
@@ -70,7 +69,13 @@ android {
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
-            isMinifyEnabled = false
+            // R8 : suppression du code mort + obfuscation, et elagage des
+            // ressources non referencees. Les regles specifiques (proto DataStore,
+            // Crashlytics) sont dans proguard-rules.pro. Les licences OSS, chargees
+            // par getIdentifier(), sont protegees du shrinker par le keep.xml que le
+            // plugin oss-licenses genere lui-meme (raw/keep_third_party_licenses.xml).
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -118,13 +123,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.coil)
     implementation(libs.coil.kt.compose)
-    implementation(libs.coil.video)
     implementation(libs.coil.base)
     implementation(libs.coil.compose.base)
-    implementation(libs.coil.kt.svg)
     implementation(libs.androidx.media)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.kotlinx.serialization.json)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.android)
     implementation(libs.hilt.core)
