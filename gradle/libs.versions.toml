@@ -17,7 +17,6 @@ media = "1.7.0"
 media3Exoplayer = "1.5.1"
 navigationRuntimeKtx = "2.8.9"
 androidxNavigation = "2.8.4"
-kotlinxSerializationJson = "1.6.3"
 hilt = "2.51"
 ksp = "2.0.20-1.0.25"
 androidxHiltNavigationCompose = "1.2.0"
@@ -56,10 +55,8 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
-coil-kt-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
 coil-base = { group = "io.coil-kt", name = "coil-base", version.ref = "coil" }
 coil-compose-base = { group = "io.coil-kt", name = "coil-compose-base", version.ref = "coil" }
-coil-video = { group = "io.coil-kt", name = "coil-video", version.ref = "coil" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -76,7 +73,6 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-media = { group = "androidx.media", name = "media", version.ref = "media" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "kotlinxCoroutinesGuava" }
-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 androidx-media3-datasource-okhttp = { module = "androidx.media3:media3-datasource-okhttp", version.ref = "media3Exoplayer" }
 androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "media3Exoplayer" }
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Exoplayer" }
@@ -99,7 +95,6 @@ hilt-plugin = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin" }
