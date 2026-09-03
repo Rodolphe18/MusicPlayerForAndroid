@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.Window
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -33,6 +34,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
+import com.francotte.contentproviderformusic.R
 import com.francotte.contentproviderformusic.ads.InterstitialAdState
 import com.francotte.contentproviderformusic.ads.InterstitialManager
 import com.francotte.contentproviderformusic.repository.SongsFetcherRepository
@@ -175,6 +177,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestPermissions() {
+        // Etat avant la demande : le contrat rend la main sans afficher de dialogue
+        // quand tout est deja accorde, son resultat ne dit donc pas si quelque chose
+        // vient reellement d'etre accorde. Sans ce temoin, le message de confirmation
+        // se rejouait a chaque lancement et a chaque rotation (onCreate relance la
+        // demande). Voir PermissionManager.shouldAnnounceGrant.
+        val grantedBefore = PermissionManager.hasAllPermissions(this)
         val multiplePermissionsContract =
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
                 // On ne teste plus "toutes accordees" : refuser les notifications ne doit
@@ -186,6 +194,14 @@ class MainActivity : ComponentActivity() {
                     // Aucune annonce sans permission : on relache le splash pour laisser
                     // apparaitre l'ecran d'explication.
                     mainViewModel.releaseSplash()
+                }
+                val grantedNow = PermissionManager.hasAllPermissions(this)
+                if (PermissionManager.shouldAnnounceGrant(grantedBefore, grantedNow)) {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.permissions_granted),
+                        Toast.LENGTH_SHORT,
+                    ).show()
                 }
             }
         PermissionManager.requestRuntimePermission(multiplePermissionsContract)

@@ -44,4 +44,27 @@ object PermissionManager {
     fun hasAudioPermission(context: Context): Boolean =
         ContextCompat.checkSelfPermission(context, audioPermission) ==
             PackageManager.PERMISSION_GRANTED
+
+    /**
+     * Toutes les permissions demandées : audio + notification à partir d'Android 13,
+     * audio seule en deçà. Sert uniquement au message de confirmation ; l'affichage
+     * de la bibliothèque, lui, ne dépend que de [hasAudioPermission].
+     */
+    fun hasAllPermissions(context: Context): Boolean =
+        (arrayOf(audioPermission) + optionalPermissions).all { permission ->
+            ContextCompat.checkSelfPermission(context, permission) ==
+                PackageManager.PERMISSION_GRANTED
+        }
+
+    /**
+     * Le message de confirmation ne salue qu'une transition réelle vers « tout est
+     * accordé ».
+     *
+     * Se fier au seul résultat du dialogue ne suffit pas : quand tout est déjà
+     * accordé, `RequestMultiplePermissions` rend la main immédiatement, sans rien
+     * afficher, et son rappel se déclenche quand même. Comme la demande part de
+     * `onCreate`, cela rejouait le message à chaque lancement et à chaque rotation.
+     */
+    fun shouldAnnounceGrant(grantedBefore: Boolean, grantedNow: Boolean): Boolean =
+        !grantedBefore && grantedNow
 }
