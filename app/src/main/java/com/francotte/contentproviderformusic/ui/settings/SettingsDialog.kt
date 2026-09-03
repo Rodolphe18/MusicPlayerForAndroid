@@ -121,6 +121,13 @@ fun SettingsDialog(
                 )
                 SettingsRow(stringResource(R.string.settings_contact), onClick = onContact)
                 SettingsRow(stringResource(R.string.settings_oss_licenses), onClick = onOpenLicenses)
+
+
+                // --- Debug ---
+                // Implementee dans app/src/debug (contenu reel) et app/src/release
+                // (corps vide) : le code de test n'est pas compile en production,
+                // au lieu d'etre seulement rendu inatteignable par BuildConfig.DEBUG.
+                DebugSettingsSection()
             }
         },
         confirmButton = {
@@ -167,7 +174,7 @@ fun SettingsDialog(
 }
 
 @Composable
-private fun SectionTitle(text: String) {
+internal fun SectionTitle(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleLarge,
@@ -178,7 +185,7 @@ private fun SectionTitle(text: String) {
 }
 
 @Composable
-private fun SettingsRow(text: String, onClick: () -> Unit) {
+internal fun SettingsRow(text: String, onClick: () -> Unit) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodyMedium,
