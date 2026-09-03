@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<style>
+  /* Poppins et Manrope viennent du projet ; Nirmala UI (Windows) prend le relais
+     pour le devanagari, que Poppins ne couvre pas. Le navigateur bascule de police
+     caractère par caractère, « MP3 » reste donc en Poppins. */
+  @font-face {
+    font-family: 'PoppinsX';
+    src: url('file:///C:/Users/rodol/AndroidStudioProjects/MusicPlayerForAndroid/app/src/main/res/font/poppins_extrabold.ttf');
+  }
+  @font-face {
+    font-family: 'ManropeM';
+    src: url('file:///C:/Users/rodol/AndroidStudioProjects/MusicPlayerForAndroid/app/src/main/res/font/manrope_medium.ttf');
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1024px; height: 500px; overflow: hidden; }
+  .canvas {
+    position: relative; width: 1024px; height: 500px;
+    background:
+      radial-gradient(circle at 86% 92%, rgba(46,158,139,.62) 0%, rgba(46,158,139,0) 62%),
+      radial-gradient(circle at 8% 2%, rgba(232,93,84,.30) 0%, rgba(232,93,84,0) 45%),
+      linear-gradient(180deg, #061e2a 0%, #0f3e4c 100%);
+    display: flex; align-items: center; gap: 62px; padding-left: 92px;
+  }
+  .tile {
+    width: 190px; height: 190px; border-radius: 48px; background: #e85d54;
+    display: flex; align-items: center; justify-content: center; flex: none;
+    box-shadow: 0 14px 22px rgba(0,10,16,.45);
+  }
+  .tile svg { width: 106px; height: 106px; fill: #fff; }
+  .titre {
+    font-family: 'PoppinsX', 'Nirmala UI', sans-serif;
+    font-size: 74px; line-height: 1.1; color: #fff8f7; letter-spacing: -.5px;
+  }
+  .accroche {
+    font-family: 'ManropeM', 'Nirmala UI', sans-serif;
+    font-size: 34px; color: #b0d1cb; margin-top: 18px;
+  }
+  .barre {
+    width: 84px; height: 10px; border-radius: 5px; background: #e85d54; margin-top: 26px;
+  }
+</style>
+</head>
+<body>
+  <div class="canvas">
+    <div class="tile">
+      <!-- Même tracé que ic_launcher_foreground.xml (Material music_note). -->
+      <svg viewBox="0 0 24 24"><path d="M12,3v10.55c-0.59,-0.34 -1.27,-0.55 -2,-0.55 -2.21,0 -4,1.79 -4,4s1.79,4 4,4 4,-1.79 4,-4V7h4V3h-6z"/></svg>
+    </div>
+    <div>
+      <div class="titre">MP3 प्लेयर</div>
+      <div class="accroche">आपका संगीत, ऑफ़लाइन।</div>
+      <div class="barre"></div>
+    </div>
+  </div>
+</body>
+</html>
