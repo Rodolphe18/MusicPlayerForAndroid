@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -70,6 +71,8 @@ fun MiniPlayer(
     Row(
         modifier = Modifier
             .fillMaxSize()
+            // Signal de fin du parcours de generation du Baseline Profile.
+            .testTag("miniPlayer")
             .clickable { onExpand() } // tap = expand
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically

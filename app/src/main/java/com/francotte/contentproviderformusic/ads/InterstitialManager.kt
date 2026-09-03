@@ -1,6 +1,7 @@
 package com.francotte.contentproviderformusic.ads
 
 import android.app.Activity
+import com.francotte.contentproviderformusic.BuildConfig
 import com.francotte.contentproviderformusic.consent.ConsentManager
 import com.google.android.gms.ads.LoadAdError
 import kotlinx.coroutines.Dispatchers
@@ -38,6 +39,13 @@ class InterstitialManager @Inject constructor(
             }
 
             adMutex.withLock {
+                // Generation du Baseline Profile : sans annonce ni CMP, le parcours
+                // reste reproductible. Faux en release, donc supprime par R8.
+                if (BuildConfig.BENCHMARK_MODE) {
+                    sendState(InterstitialAdState.Done)
+                    return@withLock
+                }
+
                 if (hasShownAd) {
                     sendState(InterstitialAdState.Done)
                     return@withLock

@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "ContentProviderForMusic"
 include(":app")
+include(":baselineprofile")
  

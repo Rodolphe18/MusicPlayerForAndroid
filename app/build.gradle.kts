@@ -1,3 +1,4 @@
+import com.android.build.api.variant.BuildConfigField
 import java.util.Properties
 
 plugins {
@@ -7,6 +8,7 @@ plugins {
     alias(libs.plugins.hilt.plugin)
     alias(libs.plugins.ksp)
     alias(libs.plugins.protobuf)
+    alias(libs.plugins.baselineprofile)
     id("com.google.android.gms.oss-licenses-plugin")
 }
 
@@ -153,6 +155,14 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)
     implementation(libs.androidx.appcompat)
+
+    // Installe le Baseline Profile au runtime sur Android 7 a 11. A partir
+    // d'Android 12, Play compile a l'installation, mais la bibliotheque reste
+    // requise par le plugin.
+    implementation(libs.androidx.profileinstaller)
+
+    // Consomme le profil produit par le module de test et l'injecte dans le bundle.
+    baselineProfile(project(":baselineprofile"))
 }
 
 // En module unique, KSP (Hilt) ne voit pas les classes proto générées, d'où
@@ -160,6 +170,15 @@ dependencies {
 // explicitement les dossiers proto générés aux sources de la tâche KSP.
 androidComponents {
     onVariants(selector().all()) { variant ->
+        // Neutralise CMP et interstitiel sur les seuls build types du plugin
+        // baselineprofile, pour un parcours de generation reproductible.
+        val benchmark = variant.buildType in setOf("nonMinifiedRelease", "benchmarkRelease")
+        // Nullable : map exposee seulement si buildConfig est actif sur le variant.
+        variant.buildConfigFields?.put(
+            "BENCHMARK_MODE",
+            BuildConfigField("boolean", benchmark, "Neutralise CMP et interstitiel"),
+        )
+
         afterEvaluate {
             val capName = variant.name.replaceFirstChar { it.uppercase() }
             tasks.named("ksp${capName}Kotlin") {

@@ -14,6 +14,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
@@ -46,7 +48,13 @@ fun MusicApp(mainViewModel: MainViewModel, windowSizeClass: WindowSizeClass) {
     val addToPlaylistSong by mainViewModel.addToPlaylistSong.collectAsStateWithLifecycle()
     val playlists by mainViewModel.playlists.collectAsStateWithLifecycle()
 
-    Column(Modifier.fillMaxSize()) {
+    // Expose les testTag comme resource-id : sans cela UiAutomator ne voit aucun
+    // noeud Compose (generation du Baseline Profile).
+    Column(
+        Modifier
+            .fillMaxSize()
+            .semantics { testTagsAsResourceId = true },
+    ) {
         Box(Modifier.weight(1f)) {
             MusicNavHost(
                 appState = appState,

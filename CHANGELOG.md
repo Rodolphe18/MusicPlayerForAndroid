@@ -13,7 +13,25 @@ reprend l'essentiel sous une forme directement réutilisable.
 > `app/build.gradle.kts` avant tout nouvel envoi, sinon la Play Console rejette le
 > bundle.
 
-Rien pour l'instant.
+### Ajouté
+
+**Baseline Profile** — démarrage à froid accéléré.
+
+Un profil de compilation anticipée est désormais embarqué dans le bundle. Android
+compile à l'installation les classes du chemin de démarrage, au lieu de les
+interpréter lors des premiers lancements.
+
+Mesuré sur émulateur API 33, médiane de 10 démarrages à froid : **2380 ms sans
+compilation contre 1543 ms avec le profil**, soit 35 % de mieux. Les valeurs
+absolues ne valent que pour cet émulateur ; c'est l'écart qui compte. Le gain
+porte sur les premiers lancements après installation, ceux qui décident d'une
+désinstallation.
+
+Le profil est produit par le module `:baselineprofile` sur le parcours réel de
+l'application : lancement, chargement de la bibliothèque, démarrage automatique de
+la lecture, affichage du lecteur réduit. Le regénérer après toute modification de
+ce chemin, avec `./gradlew :app:generateReleaseBaselineProfile` sur un émulateur
+d'image `google_apis`.
 
 ---
 
